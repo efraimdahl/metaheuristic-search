@@ -3,14 +3,14 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import graph_handler
 import copy
-class GainBucket:
-    def __init__(self, value, next, previous):
-        self.value = value
+class DoubleLinkedElement:
+    def __init__(self, vertexValue, next, previous):
+        self.vertexValue = vertexValue
         self.next = next
         self.previous = previous
     
     def append(self, valueNewNode):
-        new = GainBucket(value=valueNewNode, next=self.next, previous=self)
+        new = DoubleLinkedElement(vertexValue=valueNewNode, next=self.next, previous=self)
         if (self.next):
             self.next.previous = new
         self.next = new
@@ -30,12 +30,12 @@ class GainBucket:
         res = ""
         temp = copy.copy(self)
         while (temp.previous):
-            res += self.previous.value
+            res += self.previous.vertexValue
             temp = temp.previous
-        res += f"({self.value})"
+        res += f"({self.vertexValue})"
         temp = copy.copy(self)
         while (temp.next):
-            res += f"{temp.next.value}"
+            res += f"{temp.next.vertexValue}"
             temp = temp.next
         return res    
 
@@ -67,8 +67,8 @@ def initializeBuckets(G,lColor='red'):
     maxCard = 0
     for vertex in G.nodes:
         maxCard = max(maxCard,G.degree[vertex])
-    lBucket = [GainBucket("head", None, None) for i in range(0,maxCard*2+1)]
-    rBucket = [GainBucket("head", None, None) for i in range(0,maxCard*2+1)]
+    lBucket = [DoubleLinkedElement("head", None, None) for i in range(0,maxCard*2+1)]
+    rBucket = [DoubleLinkedElement("head", None, None) for i in range(0,maxCard*2+1)]
     lBucketsize = 0
     rBucketsize = 0
     cellReference = {}
@@ -110,41 +110,45 @@ def findMaximumGain(bucket):
             return gain, bucket[i].next
     return -1,-1   
 
-
-def fm_pass(G, lBucket, rBucket,lBucketsize,rBucketsize,cellReference, colors=("red","blue")):
+# we have to Datastructures, the buckets, and the graph:
+# the buckets are a list of double linked lists, the graph is a list of nodes, and a list of edges
+# to map this we need a dictionary, that maps the vertex to the element in the bucket (vertexElementReference)
+# (this dictionary also helps us to keep track of which elements/vertecies we already moved)
+# following i will use element to describe the double linked list element, and vertex to describe the graph node
+def fm_pass(G, lBucket, rBucket,lBucketsize,rBucketsize,vertexElementReference, colors=("red","blue")):
     """
     performs a single pass of the Fiduccia–Mattheyses algorithm
     """
     pickBucket, pickBucketSize, receiveBucket, receiveBucketSize = bucketSelect(lBucket, rBucket,lBucketsize,rBucketsize)
     
    
-    maxGain, maxGainVertex = findMaximumGain(pickBucket)
+    maxGain, maxGainElement = findMaximumGain(pickBucket)
     while(maxGain!=-1):
-        maxGainVertex.remove()
+        maxGainElement.remove()
+        vertex = maxGainElement.vertexValue 
+        vertexElementReference[vertex] = None  # set to None, because we dont want to move this vertex again
         pickBucketSize = pickBucketSize - 1
 
-        vertex = maxGainVertex.value
-        cellReference[vertex] = None
         G.nodes[vertex]["color"] = "red" if G.nodes[vertex]["color"] == "green" else "green"   # TODO: make color constants somewhere
-        for neighbor in (G.neighbors(vertex)):
-            gainBucket = cellReference[neighbor]
-            if not gainBucket:
+        
+        
+        for neighborVertex in (G.neighbors(vertex)):
+            neighborElement = vertexElementReference[neighborVertex]
+            if not neighborElement:              # if vertex was already moved we dont need to calculate the gain and add it to our buckets
                 continue
-            gain = calculateGain(G, neighbor)
-            gainBucket.remove()
-            bucket = receiveBucket[gain].append(neighbor)
-            cellReference[neighbor] = bucket 
+            # update gain:
+            gain = calculateGain(G, neighborVertex)
+            neighborElement.remove()          
+            neighborElement = receiveBucket[gain].append(neighborVertex)
+            vertexElementReference[neighborVertex] = neighborElement 
+
+
         pickBucket, pickBucketSize, receiveBucket, receiveBucketSize = bucketSelect(pickBucket, receiveBucket,pickBucketSize,receiveBucketSize)    
-        maxGain, maxGainVertex = findMaximumGain(pickBucket)
+        maxGain, maxGainElement = findMaximumGain(pickBucket)
 
     return G, -1, -1, -1
 
-            
-
-        
-
-
-    return
+          
 
 def fm_search(G:nx.Graph):
     #Calculate maximum cardinality, maximum amount of edges any one vertex has, this is the maximum gain/loss
@@ -155,7 +159,7 @@ def fm_search(G:nx.Graph):
     return G
 
 
-head = GainBucket("head", None, None)
+head = DoubleLinkedElement("head", None, None)
 item1 = head.append(1)
 item2 = item1.append(2)
 item3 = item2.append(3)
@@ -164,7 +168,7 @@ item1.remove()
 #print(head.toString())
 
 
-vertices = [('A',{"color":"green",}),('B',{"color":"red",}),('C',{"color":"green",}),('D',{"color":"red",})]
+vertices = [('A',{"color":"green",}),('B',{"color":"red",}),('C',{"color":"green",}),('D',{"color":"green"})]
 edges = [('A','B'),('B','C'),('B','A'),('C','B'),('B','C'),('C','D'),('D','C')]
 G1 = nx.Graph()
 G1.add_nodes_from(vertices)
