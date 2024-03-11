@@ -1,7 +1,7 @@
 
 import networkx as nx
 import matplotlib.pyplot as plt
-import visualisation as vis
+import graph_handler
 import copy
 class GainBucket:
     def __init__(self, value, next, previous):
@@ -169,7 +169,7 @@ edges = [('A','B'),('B','C'),('B','A'),('C','B'),('B','C'),('C','D'),('D','C')]
 G1 = nx.Graph()
 G1.add_nodes_from(vertices)
 G1.add_edges_from(edges)
-vis.vizualize_graph(G1)
+graph_handler.vizualize_graph(G1)
 G2 = fm_search(G1)
-vis.vizualize_graph(G2)
+graph_handler.vizualize_graph(G2)
 t = 2
