@@ -26,18 +26,25 @@ class DoubleLinkedElement:
             self.previous.next = temp.next
         self = None
     
-    def toString(self):
-        res = ""
+
+    def getVertexAsList(self): # Caution this needs O(n)
+        res = []
         temp = copy.copy(self)
         while (temp.previous):
-            res += self.previous.vertexValue
             temp = temp.previous
-        res += f"({self.vertexValue})"
+            if (temp.vertexValue ):
+                res.append( temp.vertexValue)
+            
+        if (self.vertexValue):
+            res.append(self.vertexValue)
         temp = copy.copy(self)
         while (temp.next):
-            res += f"{temp.next.vertexValue}"
             temp = temp.next
-        return res    
+            if (temp.vertexValue ):
+           
+                res.append(temp.vertexValue)
+            
+        return res   
 
 
 
@@ -67,8 +74,10 @@ def initializeBuckets(G,lColor='red'):
     maxCard = 0
     for vertex in G.nodes:
         maxCard = max(maxCard,G.degree[vertex])
-    lBucket = [DoubleLinkedElement("head", None, None) for i in range(0,maxCard*2+1)]
-    rBucket = [DoubleLinkedElement("head", None, None) for i in range(0,maxCard*2+1)]
+    # its a bit odd, but for the implementation in this way, we start the each Double Linked List with a Element with None value!
+    
+    lBucket = [DoubleLinkedElement(None, None, None) for i in range(0,maxCard*2+1)]
+    rBucket = [DoubleLinkedElement(None, None, None) for i in range(0,maxCard*2+1)]
     lBucketsize = 0
     rBucketsize = 0
     cellReference = {}
@@ -105,10 +114,14 @@ def bucketSelect(lBucket, rBucket,lBucketsize,rBucketsize):
 # returns index and gain from maximum possible move
 def findMaximumGain(bucket):
     for i in range(len(bucket) - 1,-1,-1):
-        if(bucket[i].next != None):
+        if(bucket[i].next):  # cause there is always a element with None as vertexValue we need to check if it has a next element
+                             # if not the bucket entry is empty  
             gain = i
             return gain, bucket[i].next
     return -1,-1   
+
+def calculateCut(G):
+    pass
 
 # we have to Datastructures, the buckets, and the graph:
 # the buckets are a list of double linked lists, the graph is a list of nodes, and a list of edges
@@ -154,18 +167,18 @@ def fm_search(G:nx.Graph):
     #Calculate maximum cardinality, maximum amount of edges any one vertex has, this is the maximum gain/loss
     #initialize the gain bucket as dictionary of lists
     lBucket,rBucket,lBucketsize,rBucketsize, cellReference=initializeBuckets(G)
-    
     G,lBucket,rBucket,cuts = fm_pass(G,lBucket,rBucket,lBucketsize,rBucketsize, cellReference)
     return G
 
 def testDoubleLinkedList():
-    # TODO
-    head = DoubleLinkedElement("head", None, None)
+    # TODO, just praying the foundation datastructure works properly lol...
+    head = DoubleLinkedElement(None, None, None)
     item1 = head.append(1)
     item2 = item1.append(2)
     item3 = item2.append(3)
-    item0 = head.append(0)
-    item1.remove()
+    item0 = head.append(99)
+    #item1.remove()
+    print(item3.getVertexAsList())
 
 
 def testFM():
@@ -185,4 +198,4 @@ def testFM():
         
     
 
-testFM()
+testDoubleLinkedList()
