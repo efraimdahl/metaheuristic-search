@@ -158,22 +158,31 @@ def fm_search(G:nx.Graph):
     G,lBucket,rBucket,cuts = fm_pass(G,lBucket,rBucket,lBucketsize,rBucketsize, cellReference)
     return G
 
+def testDoubleLinkedList():
+    # TODO
+    head = DoubleLinkedElement("head", None, None)
+    item1 = head.append(1)
+    item2 = item1.append(2)
+    item3 = item2.append(3)
+    item0 = head.append(0)
+    item1.remove()
 
-head = DoubleLinkedElement("head", None, None)
-item1 = head.append(1)
-item2 = item1.append(2)
-item3 = item2.append(3)
-item0 = head.append(0)
-item1.remove()
-#print(head.toString())
 
+def testFM():
+    vertices = [('A',{"color":"green",}),('B',{"color":"red",}),('C',{"color":"red",}),('D',{"color":"green"}, )]
+    edges = [('A','B'),('B','C'),('B','A'),('C','B'),('B','C'),('C','D'),('D','C')]
+    G1 = nx.Graph()
+    G1.add_nodes_from(vertices)
+    G1.add_edges_from(edges)
+    G2 = fm_search(G1.copy())
+    
+    graph_handler.vizualize_graph(G1)
+    graph_handler.vizualize_graph(G2)
+    assert(len(G1.nodes) == len(G2.nodes))
+    for node1, node2 in zip(G1.nodes, G2.nodes):
+        assert(node1 == node2)  #node order should not be changed
+        assert(G1.nodes[node1]["color"] != G2.nodes[node1]["color"])  # should be same partition
+        
+    
 
-vertices = [('A',{"color":"green",}),('B',{"color":"red",}),('C',{"color":"green",}),('D',{"color":"green"})]
-edges = [('A','B'),('B','C'),('B','A'),('C','B'),('B','C'),('C','D'),('D','C')]
-G1 = nx.Graph()
-G1.add_nodes_from(vertices)
-G1.add_edges_from(edges)
-graph_handler.vizualize_graph(G1)
-G2 = fm_search(G1)
-graph_handler.vizualize_graph(G2)
-t = 2
+testFM()
