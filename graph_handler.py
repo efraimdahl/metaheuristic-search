@@ -11,7 +11,21 @@ COLOR_PARTION_2 = "red"
 def vizualize_graph(G):
     pos = nx.spring_layout(G)
     color_map = [G.nodes[node]['color'] for node in G]   
+    
     nx.draw(G, pos, with_labels=True,node_color=color_map)
+    plt.show()
+
+def vizualizeComparionsGraph(GLeft,GRight):
+    
+    plt.figure(1)
+    pos = nx.spring_layout(GLeft)
+    color_map = [GLeft.nodes[node]['color'] for node in GLeft]   
+    nx.draw(GLeft, pos, with_labels=True,node_color=color_map)
+    plt.figure(2)
+    pos = nx.spring_layout(GRight)
+    color_map = [GRight.nodes[node]['color'] for node in GRight]   
+    nx.draw(GRight, pos, with_labels=True,node_color=color_map)
+    
     plt.show()
 
 def getNodeColor(G, vertex):
@@ -22,9 +36,6 @@ def getOppositeColor(color):
         return COLOR_PARTION_2
     return COLOR_PARTION_1
 
-
-def setDefaultNodeColor(G, vertex):
-    setNodeColor(G, vertex, COLOR_PARTION_1)
 
 
 def getPartion(G):
@@ -79,5 +90,21 @@ def parse_graph(filename, viz=False):
         vizualize_graph(G)
     return G
 
+def createExampleGraph1():
+    vertices = [('A',{"color":"green",}),('B',{"color":"red",}),('C',{"color":"red",}),('D',{"color":"green"}, )]
+    edges = [('A','B'),('A','C'),('B','C'),('B','A'),('C','B'),('B','C'),('C', 'A') , ('C','D'),('D','C')]
+    return createGraph(vertices, edges) 
+
+def createExampleGraph2():
+    vertices = [('A',{"color":"green",}),('B',{"color":"red",}),('C',{"color":"red",}),('D',{"color":"green"}, )]
+    edges = [('A','B'),('B','C'),('B','A'),('C','B'),('B','C'), ('C','D'),('D','C')]
+    return createGraph(vertices, edges) 
+
+
+def createGraph(vertices, edges):
+    G = nx.Graph()
+    G.add_nodes_from(vertices)
+    G.add_edges_from(edges)
+    return G
 #parse_graph("tests/simpleTest.txt",viz=True)
             

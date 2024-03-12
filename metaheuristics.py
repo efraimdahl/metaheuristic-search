@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import graph_handler
 import copy
 import numpy as np
-
+import time
 
 class DoubleLinkedElement:
     def __init__(self, vertexValue, next, previous):
@@ -88,7 +88,7 @@ def initializeBuckets(G):
     for vertex in G.nodes:
         
         gaindex = calculateGain(G,vertex)+maxCard
-        if(graph_handler.setDefaultNodeColor(G, vertex)):
+        if(graph_handler.getNodeColor(G, vertex) == graph_handler.COLOR_PARTION_1):
             cell = lBucket[gaindex].append(vertex)
             cellReference[vertex] = cell
             lBucketsize+=1
@@ -190,8 +190,9 @@ def fm_search(G:nx.Graph):
         lastCut = cut
         graph_handler.setPartion(G, lastPartion)
         lBucket,rBucket,lBucketsize,rBucketsize, cellReference=initializeBuckets(G)
+        start = time.time()
         G,cut,lastVertix, lastPartion = fm_pass(G,lBucket,rBucket,lBucketsize,rBucketsize, cellReference)
-
+        print(f'fm_pass time: {time.time() - start}')
 
     return G, lastVertix, lastPartion
 
@@ -206,21 +207,20 @@ def testDoubleLinkedList():
     print(item3.getVertexAsList())
 
 
+
 def testFM():
-    vertices = [('A',{"color":"green",}),('B',{"color":"red",}),('C',{"color":"red",}),('D',{"color":"green"}, )]
-    edges = [('A','B'),('A','C'),('B','C'),('B','A'),('C','B'),('B','C'),('C','D'),('D','C')]
-    G1 = nx.Graph()
-    G1.add_nodes_from(vertices)
-    G1.add_edges_from(edges)
-    G2,_,_ = fm_search(G1.copy())
-    
-    graph_handler.vizualize_graph(G1)
-    graph_handler.vizualize_graph(G2)
-    assert(len(G1.nodes) == len(G2.nodes))
-    for node1, node2 in zip(G1.nodes, G2.nodes):
+    graphInit = graph_handler.createExampleGraph2()
+    graphResult,_,lastPartion = fm_search(graphInit.copy())
+    graph_handler.setPartion(graphResult, lastPartion)
+    graph_handler.vizualizeComparionsGraph(graphInit, graphResult)
+    assert(len(graphInit.nodes) == len(graphResult.nodes))
+    for node1, node2 in zip(graphInit.nodes, graphResult.nodes):
         assert(node1 == node2)  #node order should not be changed
         #assert(G1.nodes[node1]["color"] != G2.nodes[node1]["color"])  # should be same partition
         
+    graphInit = graph_handler.createExampleGraph1()
+    graphResult,_,_ = fm_search(graphInit.copy())
+    graph_handler.vizualizeComparionsGraph(graphInit, graphResult)
     
 
 testFM()
