@@ -61,7 +61,7 @@ def calculateGain(G:nx.Graph,node)->int:
     """
     maxGain = 0
     for nd,connected_node in list(G.edges(node)):
-        if(G.nodes[connected_node]['color']==G.nodes[node]['color']):
+        if(graph_handler.getNodeColor(connected_node) == graph_handler.getNodeColor(node)):
             maxGain-=1
         else:
             maxGain+=1
@@ -69,7 +69,7 @@ def calculateGain(G:nx.Graph,node)->int:
 
 
     
-def initializeBuckets(G,lColor='red'):
+def initializeBuckets(G):
     """
     Initializes the gain Buckets by calculating the gains expressed.
     Takes as input the Graph, and the color of the items in the leftBucket
@@ -88,7 +88,7 @@ def initializeBuckets(G,lColor='red'):
     for vertex in G.nodes:
         
         gaindex = calculateGain(G,vertex)+maxCard
-        if(G.nodes[vertex]['color']==lColor):
+        if(graph_handler.setDefaultNodeColor(G, vertex)):
             cell = lBucket[gaindex].append(vertex)
             cellReference[vertex] = cell
             lBucketsize+=1

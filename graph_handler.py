@@ -22,6 +22,11 @@ def getOppositeColor(color):
         return COLOR_PARTION_2
     return COLOR_PARTION_1
 
+
+def setDefaultNodeColor(G, vertex):
+    setNodeColor(G, vertex, COLOR_PARTION_1)
+
+
 def getPartion(G):
     return getVerticiesByColor(G, COLOR_PARTION_1)
 
