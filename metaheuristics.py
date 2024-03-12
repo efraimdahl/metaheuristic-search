@@ -61,7 +61,7 @@ def calculateGain(G:nx.Graph,node)->int:
     """
     maxGain = 0
     for nd,connected_node in list(G.edges(node)):
-        if(graph_handler.getNodeColor(connected_node) == graph_handler.getNodeColor(node)):
+        if(graph_handler.getNodeColor(G,connected_node) == graph_handler.getNodeColor(G,node)):
             maxGain-=1
         else:
             maxGain+=1
@@ -208,7 +208,7 @@ def testDoubleLinkedList():
 
 def testFM():
     vertices = [('A',{"color":"green",}),('B',{"color":"red",}),('C',{"color":"red",}),('D',{"color":"green"}, )]
-    edges = [('A','B'),('B','C'),('B','A'),('C','B'),('B','C'),('C','D'),('D','C')]
+    edges = [('A','B'),('A','C'),('B','C'),('B','A'),('C','B'),('B','C'),('C','D'),('D','C')]
     G1 = nx.Graph()
     G1.add_nodes_from(vertices)
     G1.add_edges_from(edges)
