@@ -106,6 +106,10 @@ def createExampleGraph2():
     edges = [('A','B'),('B','C'),('B','A'),('C','B'),('B','C'), ('C','D'),('D','C')]
     return createGraph(vertices, edges) 
 
+def createExampleGraph3():
+    vertices = [('A',{"color":"red",}),('B',{"color":"red",}),('C',{"color":"red",}),('D',{"color":"green"}, )]
+    edges = [('A','B'),('A','C'),('B','C'),('B','A'),('C','B'),('B','C'),('C', 'A') , ('C','D'),('D','C')]
+    return createGraph(vertices, edges) 
 
 def createGraph(vertices, edges):
     G = nx.Graph()

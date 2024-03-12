@@ -149,10 +149,12 @@ def updateGain(G, vertex,vertexBucketReference, vertexElementReference):
 # to map this we need a dictionary, that maps the vertex to the element in the bucket (vertexElementReference)
 # (this dictionary also helps us to keep track of which elements/vertecies we already moved)
 # following i will use element to describe the double linked list element, and vertex to describe the graph node
-def fm_pass(G, lBucket, rBucket,lBucketsize,rBucketsize,vertexElementReference, vertexBucketReference):
+def fm_pass(G):
+        
     """
     performs a single pass of the Fiduccia–Mattheyses algorithm
     """
+    lBucket,rBucket,lBucketsize,rBucketsize, vertexElementReference, vertexBucketReference=initializeBuckets(G)
     pickBucket, pickBucketSize, receiveBucket, receiveBucketSize = bucketSelect(lBucket, rBucket,lBucketsize,rBucketsize)
     startPartion = graph_handler.getPartion(G)
     lockedVertices = []
@@ -181,7 +183,7 @@ def fm_pass(G, lBucket, rBucket,lBucketsize,rBucketsize,vertexElementReference, 
 
     endPartion = graph_handler.getPartion(G)
 
-    assert(graph_handler.getComplement(G, startPartion) == endPartion)
+    assert(graph_handler.getComplement(G, startPartion) == endPartion ) # "fm has different start end partion" 
 
     return G, np.min(cuts), lockedVertices[np.argmin(cuts)], partions[np.argmin(cuts)] 
 
@@ -197,10 +199,9 @@ def fm_search(G:nx.Graph):
     while cut < lastCut:
         lastCut = cut
         graph_handler.setPartion(G, lastPartion)
-        lBucket,rBucket,lBucketsize,rBucketsize, vertexElementReference, vertexBucketReference=initializeBuckets(G)
         start = time.time()
-        G,cut,lastVertix, lastPartion = fm_pass(G,lBucket,rBucket,lBucketsize,rBucketsize, vertexElementReference, vertexBucketReference)
-        
+        G,cut,lastVertix, lastPartion = fm_pass(G)
+
         print(f'fm_pass time: {time.time() - start}')
 
     return G, lastVertix, lastPartion
@@ -230,6 +231,9 @@ def testFM():
     graphInit = graph_handler.createExampleGraph1()
     graphResult,_,_ = fm_search(graphInit.copy())
     graph_handler.vizualizeComparionsGraph(graphInit, graphResult)
+    graphInit = graph_handler.createExampleGraph3()
+    graphResult,_,_ = fm_search(graphInit.copy())
+    
     
 
 testFM()
