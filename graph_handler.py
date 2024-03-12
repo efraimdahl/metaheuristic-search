@@ -64,6 +64,12 @@ def getCut(G): # O(n) + O(cut_size)
     
     return nx.cut_size(G, cutVertexList)
     
+def getComplement(G, verticies):
+    res = []
+    for vertex in G.nodes():
+        if not vertex in verticies:
+            res.append(vertex)
+    return res
 
 
 def setNodeColor(G, vertex, color):

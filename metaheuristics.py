@@ -83,21 +83,24 @@ def initializeBuckets(G):
     rBucket = [DoubleLinkedElement(None, None, None) for i in range(0,maxCard*2+1)]
     lBucketsize = 0
     rBucketsize = 0
-    cellReference = {}
+    vertexElementReference = {}
+    vertexBucketReference = {}
     #For each node calculate the gain achived by moving the node to the other color, and insert into appropriate index 
     for vertex in G.nodes:
         
         gaindex = calculateGain(G,vertex)+maxCard
         if(graph_handler.getNodeColor(G, vertex) == graph_handler.COLOR_PARTION_1):
             cell = lBucket[gaindex].append(vertex)
-            cellReference[vertex] = cell
+            vertexElementReference[vertex] = cell
+            vertexBucketReference[vertex] = lBucket
             lBucketsize+=1
         else:
             cell = rBucket[gaindex].append(vertex)
-            cellReference[vertex] = cell
+            vertexElementReference[vertex] = cell
+            vertexBucketReference[vertex] = rBucket
             rBucketsize+=1
     
-    return lBucket,rBucket,lBucketsize,rBucketsize, cellReference
+    return lBucket,rBucket,lBucketsize,rBucketsize, vertexElementReference, vertexBucketReference
 
 #Keep the buckets balanced
 def bucketSelect(lBucket, rBucket,lBucketsize,rBucketsize):
@@ -123,40 +126,41 @@ def findMaximumGain(bucket):
             return gain, bucket[i].next
     return -1,-1   
 
-def popVertrexFromBucket(element, vertexElementReference):
+def popVertrexFromBucket(element, vertexElementReference, vertexBucketReference):
     vertex = element.vertexValue 
     vertexElementReference[vertex] = None  # set to None, because we dont want to move this vertex again
-        
+    vertexBucketReference[vertex] = None
     element.remove()
     return vertex   
     
 # TODO double check if in O(1)
-def updateGain(G, vertex,bucket, vertexElementReference):
+def updateGain(G, vertex,vertexBucketReference, vertexElementReference):
     neighborElement = vertexElementReference[vertex]
+     
     if not neighborElement:              # if vertex was already moved we dont need to calculate the gain and add it to our buckets
         return
     # update gain:
     gain = calculateGain(G, vertex)
     neighborElement.remove()          
-    neighborElement = bucket[gain].append(vertex)
+    neighborElement = vertexBucketReference[vertex][gain].append(vertex)
     vertexElementReference[vertex] = neighborElement 
 # we have to Datastructures, the buckets, and the graph:
 # the buckets are a list of double linked lists, the graph is a list of nodes, and a list of edges
 # to map this we need a dictionary, that maps the vertex to the element in the bucket (vertexElementReference)
 # (this dictionary also helps us to keep track of which elements/vertecies we already moved)
 # following i will use element to describe the double linked list element, and vertex to describe the graph node
-def fm_pass(G, lBucket, rBucket,lBucketsize,rBucketsize,vertexElementReference, colors=("red","blue")):
+def fm_pass(G, lBucket, rBucket,lBucketsize,rBucketsize,vertexElementReference, vertexBucketReference):
     """
     performs a single pass of the Fiduccia–Mattheyses algorithm
     """
     pickBucket, pickBucketSize, receiveBucket, receiveBucketSize = bucketSelect(lBucket, rBucket,lBucketsize,rBucketsize)
-    
+    startPartion = graph_handler.getPartion(G)
     lockedVertices = []
     cuts = []
     partions = []
     maxGain, maxGainElement = findMaximumGain(pickBucket)
     while(maxGain!=-1):
-        maxGainVertex = popVertrexFromBucket(maxGainElement, vertexElementReference)
+        maxGainVertex = popVertrexFromBucket(maxGainElement, vertexElementReference,vertexBucketReference)
         lockedVertices.append(maxGainVertex)
         pickBucketSize = pickBucketSize - 1
 
@@ -168,13 +172,16 @@ def fm_pass(G, lBucket, rBucket,lBucketsize,rBucketsize,vertexElementReference, 
         
         # O(n) * O(updateGain)
         for neighborVertex in (G.neighbors(maxGainVertex)):
-            updateGain(G,neighborVertex, receiveBucket, vertexElementReference)
+            updateGain(G,neighborVertex, vertexBucketReference, vertexElementReference)
         
         cuts.append(graph_handler.getCut(G))
         
         pickBucket, pickBucketSize, receiveBucket, receiveBucketSize = bucketSelect(pickBucket, receiveBucket,pickBucketSize,receiveBucketSize)    
         maxGain, maxGainElement = findMaximumGain(pickBucket)
 
+    endPartion = graph_handler.getPartion(G)
+
+    assert(graph_handler.getComplement(G, startPartion) == endPartion)
 
     return G, np.min(cuts), lockedVertices[np.argmin(cuts)], partions[np.argmin(cuts)] 
 
@@ -185,13 +192,15 @@ def fm_search(G:nx.Graph):
     #initialize the gain bucket as dictionary of lists
     
     lastCut ,lastVertix, lastPartion = 999, None, graph_handler.getPartion(G)
+        
     cut = 998
     while cut < lastCut:
         lastCut = cut
         graph_handler.setPartion(G, lastPartion)
-        lBucket,rBucket,lBucketsize,rBucketsize, cellReference=initializeBuckets(G)
+        lBucket,rBucket,lBucketsize,rBucketsize, vertexElementReference, vertexBucketReference=initializeBuckets(G)
         start = time.time()
-        G,cut,lastVertix, lastPartion = fm_pass(G,lBucket,rBucket,lBucketsize,rBucketsize, cellReference)
+        G,cut,lastVertix, lastPartion = fm_pass(G,lBucket,rBucket,lBucketsize,rBucketsize, vertexElementReference, vertexBucketReference)
+        
         print(f'fm_pass time: {time.time() - start}')
 
     return G, lastVertix, lastPartion
@@ -211,7 +220,7 @@ def testDoubleLinkedList():
 def testFM():
     graphInit = graph_handler.createExampleGraph2()
     graphResult,_,lastPartion = fm_search(graphInit.copy())
-    graph_handler.setPartion(graphResult, lastPartion)
+    #graph_handler.setPartion(graphResult, lastPartion)
     graph_handler.vizualizeComparionsGraph(graphInit, graphResult)
     assert(len(graphInit.nodes) == len(graphResult.nodes))
     for node1, node2 in zip(graphInit.nodes, graphResult.nodes):
