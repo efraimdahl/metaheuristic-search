@@ -93,7 +93,7 @@ def initializeBuckets(G):
     for vertex in G.nodes:
         
         gaindex = calculateGain(G,vertex)+maxCard
-        if(graph_handler.getNodeColor(G, vertex) == graph_handler.COLOR_PARTION_1):
+        if(graph_handler.getNodeColor(G, vertex) == graph_handler.COLOR_PARTION_0):
             cell = lBucket[gaindex].append(vertex, gaindex)
             vertexElementReference[vertex] = cell
             vertexBucketReference[vertex] = lBucket
@@ -172,7 +172,7 @@ def findBestPartion(G,  lockedVertices):
             return G, graph_handler.getPartion(G), minCut
         
         vertexColor = graph_handler.getNodeColor(G, vertex["vertex"])
-        graph_handler.setNodeColor(G, vertex["vertex"], graph_handler.getOppositeColor(vertexColor))
+        graph_handler.setNodeColor(G, vertex["vertex"], graph_handler.getComplementColor(vertexColor))
         
 
 # we have to Datastructures, the buckets, and the graph:
@@ -197,7 +197,7 @@ def fm_pass(G):
         pickBucketSize = pickBucketSize - 1
         
         partionColor = graph_handler.getNodeColor(G, maxGainVertex)
-        graph_handler.setNodeColor(G,maxGainVertex, graph_handler.getOppositeColor(partionColor))
+        graph_handler.setNodeColor(G,maxGainVertex, graph_handler.getComplementColor(partionColor))
         
         # O(n) * O(updateGain)
         cut += updateGain(G, maxGainVertex, vertexBucketReference, vertexElementReference)
@@ -247,8 +247,10 @@ def testDoubleLinkedList():
 
 def testFM():
     graphInit = graph_handler.createExampleGraph2()
+    print(graph_handler.getBinaryRepresentation(graphInit))
     graphResult,lastPartion = fm_search(graphInit.copy())
     graph_handler.setPartion(graphResult, lastPartion)
+    print(graph_handler.getBinaryRepresentation(graphResult))
     graph_handler.vizualizeComparionsGraph(graphInit, graphResult)
     assert(len(graphInit.nodes) == len(graphResult.nodes))
     for node1, node2 in zip(graphInit.nodes, graphResult.nodes):

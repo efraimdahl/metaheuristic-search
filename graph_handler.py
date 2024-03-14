@@ -2,10 +2,19 @@ import networkx as nx
 import matplotlib.pyplot as plt
 
 
-COLOR_PARTION_1 = "green"
-COLOR_PARTION_2 = "red"
+COLOR_PARTION_0 = "green"
+COLOR_PARTION_1 = "red"
 
-
+# O(n)
+def getBinaryRepresentation(G):
+    res = ""
+    for vertex in G.nodes():
+        if getNodeColor(G, vertex) == COLOR_PARTION_0:
+            res += "0"
+        else:
+            res += "1"
+    return res
+    
 
 #Show Graph:
 def vizualize_graph(G):
@@ -16,12 +25,12 @@ def vizualize_graph(G):
     plt.show()
 
 def vizualizeComparionsGraph(GLeft,GRight):
-    
-    plt.figure(1)
+    G=nx.grid_2d_graph(2,1) 
+    plt.subplot(221)
     pos = nx.spring_layout(GLeft)
     color_map = [GLeft.nodes[node]['color'] for node in GLeft]   
     nx.draw(GLeft, pos, with_labels=True,node_color=color_map)
-    plt.figure(2)
+    plt.subplot(222)
     pos = nx.spring_layout(GRight)
     color_map = [GRight.nodes[node]['color'] for node in GRight]   
     nx.draw(GRight, pos, with_labels=True,node_color=color_map)
@@ -31,22 +40,22 @@ def vizualizeComparionsGraph(GLeft,GRight):
 def getNodeColor(G, vertex):
     return G.nodes[vertex]["color"]
 
-def getOppositeColor(color):
-    if color == COLOR_PARTION_1:
-        return COLOR_PARTION_2
-    return COLOR_PARTION_1
+def getComplementColor(color):
+    if color == COLOR_PARTION_0:
+        return COLOR_PARTION_1
+    return COLOR_PARTION_0
 
 
 
 def getPartion(G):
-    return getVerticiesByColor(G, COLOR_PARTION_1)
+    return getVerticiesByColor(G, COLOR_PARTION_0)
 
 def setPartion(G, vertices):
     for vertex in G.nodes():
         if vertex in vertices:
-            setNodeColor(G,vertex, COLOR_PARTION_1)
+            setNodeColor(G,vertex, COLOR_PARTION_0)
         else:
-            setNodeColor(G,vertex, COLOR_PARTION_2)
+            setNodeColor(G,vertex, COLOR_PARTION_1)
 
 def getVerticiesByColor(G, color): # O(n)
     cutVertexList = []
@@ -59,7 +68,7 @@ def getVerticiesByColor(G, color): # O(n)
 def getCut(G): # O(n) + O(cut_size)
     cutVertexList = []
     for vertex in G.nodes():
-        if getNodeColor(G,vertex) == COLOR_PARTION_1:    #   TODOC: partition color does not matter, since cut is symetric 
+        if getNodeColor(G,vertex) == COLOR_PARTION_0:    #   TODOC: partition color does not matter, since cut is symetric 
             cutVertexList.append(vertex)
     
     return nx.cut_size(G, cutVertexList)
