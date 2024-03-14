@@ -16,7 +16,7 @@ def mls(G, numberRandoms = 10):
     minCut = math.inf 
     for run in range(numberRandoms):
         binList = createRandomPartion(G)
-        graph_handler.setByBinaryRepresentationFromList(G, binList)
+        graph_handler.setPartionByBinaryList(G, binList)
         G, partion, cut = fiduccia.fm_search(G)
         if cut  < minCut:
             minCut = cut
@@ -25,6 +25,7 @@ def mls(G, numberRandoms = 10):
     graph_handler.setPartion(G, bestPartion) 
 
 
-graphInit = graph_handler.createExampleGraph1()
+graphInit = graph_handler.parse_graph("res/Graph500.txt", True)
 mls(graphInit, 10)
-print(graph_handler.getBinaryRepresentationAsString(graphInit))
+print(graph_handler.getStringBinaryRepresentation(graphInit))
+graph_handler.vizualize_graph(graphInit)

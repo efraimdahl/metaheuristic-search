@@ -1,13 +1,13 @@
 import networkx as nx
 import matplotlib.pyplot as plt
-
+import re
 
 COLOR_PARTION_0 = "green"
 COLOR_PARTION_1 = "red"
 BINARY_PARTION_0 = "0"
 BINARY_PARTION_1 = "1"
 # O(n)
-def getBinaryRepresentationAsString(G):
+def getStringBinaryRepresentation(G):
     res = ""
     for vertex in G.nodes():
         if getNodeColor(G, vertex) == COLOR_PARTION_0:
@@ -16,7 +16,7 @@ def getBinaryRepresentationAsString(G):
             res += BINARY_PARTION_1
     return res
 # O(n)
-def setByBinaryRepresentationFromList(G, binList):
+def setPartionByBinaryList(G, binList):
     for vertex, bit in zip(G.nodes(), binList):
         if bit == BINARY_PARTION_0:
             setNodeColor(G,vertex, COLOR_PARTION_0)
@@ -98,12 +98,13 @@ def parse_graph(filename, viz=False):
         lines = file.readlines()
         vertices = []
         edges = []
-        color="blue"
+        
         for line in lines:
-            color="red" if color=="blue" else "blue"
-            line_info = line.split(" ")
+            removedMultiBlanks = re.sub(r'\s+', ' ', line)
+            line_info = removedMultiBlanks.split(" ")
+            line_info = [i for i in line_info if i != ""]
             vertex = int(line_info[0].strip())
-            vertices.append((vertex,{"color":color}))
+            vertices.append((vertex,{"color":"blue"}))
             for i in range(1,int(line_info[2].strip())+1):
                 edges.append((vertex,int(line_info[2+i].strip())))
     G.add_nodes_from(vertices)

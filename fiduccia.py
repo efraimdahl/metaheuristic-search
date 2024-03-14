@@ -246,10 +246,10 @@ def testDoubleLinkedList():
 
 def testFM():
     graphInit = graph_handler.createExampleGraph2()
-    print(graph_handler.getBinaryRepresentationAsString(graphInit))
+    print(graph_handler.getStringBinaryRepresentation(graphInit))
     graphResult,lastPartion = fm_search(graphInit.copy())
     graph_handler.setPartion(graphResult, lastPartion)
-    print(graph_handler.getBinaryRepresentationAsString(graphResult))
+    print(graph_handler.getStringBinaryRepresentation(graphResult))
     graph_handler.vizualizeComparionsGraph(graphInit, graphResult)
     assert(len(graphInit.nodes) == len(graphResult.nodes))
     for node1, node2 in zip(graphInit.nodes, graphResult.nodes):
