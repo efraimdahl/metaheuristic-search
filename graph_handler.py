@@ -102,7 +102,7 @@ def createExampleGraph1():
     return createGraph(vertices, edges) 
 
 def createExampleGraph2():
-    vertices = [('A',{"color":"green",}),('B',{"color":"red",}),('C',{"color":"red",}),('D',{"color":"green"}, )]
+    vertices = [('A',{"color":"green",}),('B',{"color":"red",}),('C',{"color":"green",}),('D',{"color":"red"}, )]
     edges = [('A','B'),('B','C'),('B','A'),('C','B'),('B','C'), ('C','D'),('D','C')]
     return createGraph(vertices, edges) 
 

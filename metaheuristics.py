@@ -7,13 +7,14 @@ import numpy as np
 import time
 
 class DoubleLinkedElement:
-    def __init__(self, vertexValue, next, previous):
+    def __init__(self, vertexValue, next, previous, gain):
         self.vertexValue = vertexValue
         self.next = next
         self.previous = previous
+        self.gain = gain
     
-    def append(self, valueNewNode):
-        new = DoubleLinkedElement(vertexValue=valueNewNode, next=self.next, previous=self)
+    def append(self, valueNewNode, gain):
+        new = DoubleLinkedElement(vertexValue=valueNewNode, next=self.next, previous=self, gain=gain)
         if (self.next):
             self.next.previous = new
         self.next = new
@@ -29,7 +30,9 @@ class DoubleLinkedElement:
             self.previous.next = temp.next
 
     
-
+    def isEmpty(self):
+        return not self.next 
+    
     def getVertexAsList(self): # Caution this needs O(n)
         res = []
         temp = copy.copy(self)
@@ -79,8 +82,8 @@ def initializeBuckets(G):
         maxCard = max(maxCard,G.degree[vertex])
     # its a bit odd, but for the implementation in this way, we start the each Double Linked List with a Element with None value!
     
-    lBucket = [DoubleLinkedElement(None, None, None) for i in range(0,maxCard*2+1)]
-    rBucket = [DoubleLinkedElement(None, None, None) for i in range(0,maxCard*2+1)]
+    lBucket = [DoubleLinkedElement(None, None, None, i) for i in range(0,maxCard*2+1)]
+    rBucket = [DoubleLinkedElement(None, None, None, i) for i in range(0,maxCard*2+1)]
     lBucketsize = 0
     rBucketsize = 0
     vertexElementReference = {}
@@ -90,12 +93,12 @@ def initializeBuckets(G):
         
         gaindex = calculateGain(G,vertex)+maxCard
         if(graph_handler.getNodeColor(G, vertex) == graph_handler.COLOR_PARTION_1):
-            cell = lBucket[gaindex].append(vertex)
+            cell = lBucket[gaindex].append(vertex, gaindex)
             vertexElementReference[vertex] = cell
             vertexBucketReference[vertex] = lBucket
             lBucketsize+=1
         else:
-            cell = rBucket[gaindex].append(vertex)
+            cell = rBucket[gaindex].append(vertex, gaindex)
             vertexElementReference[vertex] = cell
             vertexBucketReference[vertex] = rBucket
             rBucketsize+=1
@@ -120,7 +123,7 @@ def bucketSelect(lBucket, rBucket,lBucketsize,rBucketsize):
 # returns index and gain from maximum possible move
 def findMaximumGain(bucket):
     for i in range(len(bucket) - 1,-1,-1):
-        if(bucket[i].next):  # cause there is always a element with None as vertexValue we need to check if it has a next element
+        if not (bucket[i].isEmpty()):  # cause there is always a element with None as vertexValue we need to check if it has a next element
                              # if not the bucket entry is empty  
             gain = i
             return gain, bucket[i].next
@@ -134,16 +137,29 @@ def popVertrexFromBucket(element, vertexElementReference, vertexBucketReference)
     return vertex   
     
 # TODO double check if in O(1)
-def updateGain(G, vertex,vertexBucketReference, vertexElementReference):
-    neighborElement = vertexElementReference[vertex]
-     
-    if not neighborElement:              # if vertex was already moved we dont need to calculate the gain and add it to our buckets
-        return
-    # update gain:
-    gain = calculateGain(G, vertex)
-    neighborElement.remove()          
-    neighborElement = vertexBucketReference[vertex][gain].append(vertex)
-    vertexElementReference[vertex] = neighborElement 
+def updateGain(G, maxGainVertex,vertexBucketReference, vertexElementReference):
+    cutUpdate = 0
+    for neighborVertex in (G.neighbors(maxGainVertex)):
+        
+        neighborElement = vertexElementReference[neighborVertex]
+        
+        # update gain:
+        if graph_handler.getNodeColor(G, neighborVertex) == graph_handler.getNodeColor(G, maxGainVertex):
+            if neighborElement:                
+                gain = neighborElement.gain - 2 # TODOC 
+            cutUpdate -= 1                      # TODOC
+        else:
+            if neighborElement:
+                gain = neighborElement.gain + 2
+            cutUpdate += 1
+        
+        if not neighborElement:              # if vertex was already moved we dont need to calculate the gain and add it to our buckets
+            continue
+        
+        neighborElement.remove()          
+        neighborElement = vertexBucketReference[neighborVertex][gain].append(neighborVertex, gain)
+        vertexElementReference[neighborVertex] = neighborElement 
+    return cutUpdate
 # we have to Datastructures, the buckets, and the graph:
 # the buckets are a list of double linked lists, the graph is a list of nodes, and a list of edges
 # to map this we need a dictionary, that maps the vertex to the element in the bucket (vertexElementReference)
@@ -157,26 +173,30 @@ def fm_pass(G):
     lBucket,rBucket,lBucketsize,rBucketsize, vertexElementReference, vertexBucketReference=initializeBuckets(G)
     pickBucket, pickBucketSize, receiveBucket, receiveBucketSize = bucketSelect(lBucket, rBucket,lBucketsize,rBucketsize)
     startPartion = graph_handler.getPartion(G)
+    cut = graph_handler.getCut(G)
     lockedVertices = []
     cuts = []
     partions = []
     maxGain, maxGainElement = findMaximumGain(pickBucket)
+    cuts.append(cut)
     while(maxGain!=-1):
         maxGainVertex = popVertrexFromBucket(maxGainElement, vertexElementReference,vertexBucketReference)
         lockedVertices.append(maxGainVertex)
         pickBucketSize = pickBucketSize - 1
-
+        if (pickBucketSize == receiveBucketSize):
+            lockedVertices.append({"vertex": maxGainVertex, "valid": True})
+        else:
+            lockedVertices.append({"vertex": maxGainVertex, "valid": False})
+            
+        
         partionColor = graph_handler.getNodeColor(G, maxGainVertex)
         graph_handler.setNodeColor(G,maxGainVertex, graph_handler.getOppositeColor(partionColor))
         
-        partions.append(graph_handler.getPartion(G)) 
-        
-        
         # O(n) * O(updateGain)
-        for neighborVertex in (G.neighbors(maxGainVertex)):
-            updateGain(G,neighborVertex, vertexBucketReference, vertexElementReference)
+        cut += updateGain(G, maxGainVertex, vertexBucketReference, vertexElementReference)
+        cuts.append(cut)
+    
         
-        cuts.append(graph_handler.getCut(G))
         
         pickBucket, pickBucketSize, receiveBucket, receiveBucketSize = bucketSelect(pickBucket, receiveBucket,pickBucketSize,receiveBucketSize)    
         maxGain, maxGainElement = findMaximumGain(pickBucket)
@@ -185,7 +205,7 @@ def fm_pass(G):
 
     assert(graph_handler.getComplement(G, startPartion) == endPartion ) # "fm has different start end partion" 
 
-    return G, np.min(cuts), lockedVertices[np.argmin(cuts)], partions[np.argmin(cuts)] 
+    return G, -1,-1,-1#np.min(cuts), lockedVertices[np.argmin(cuts)], partions[np.argmin(cuts)] 
 
           
 
