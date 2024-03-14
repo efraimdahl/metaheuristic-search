@@ -5,6 +5,7 @@ import graph_handler
 import copy
 import numpy as np
 import time
+import math 
 
 class DoubleLinkedElement:
     def __init__(self, vertexValue, next, previous, gain):
@@ -160,6 +161,20 @@ def updateGain(G, maxGainVertex,vertexBucketReference, vertexElementReference):
         neighborElement = vertexBucketReference[neighborVertex][gain].append(neighborVertex, gain)
         vertexElementReference[neighborVertex] = neighborElement 
     return cutUpdate
+
+def findBestPartion(G,  lockedVertices):
+    minCut = math.inf
+    for v in lockedVertices:
+        if v["valid"]:
+            minCut = min(minCut, v["cut"])
+    for vertex in lockedVertices:
+        if (minCut == vertex["cut"] and vertex["valid"]):
+            return G, graph_handler.getPartion(G), minCut
+        
+        vertexColor = graph_handler.getNodeColor(G, vertex["vertex"])
+        graph_handler.setNodeColor(G, vertex["vertex"], graph_handler.getOppositeColor(vertexColor))
+        
+
 # we have to Datastructures, the buckets, and the graph:
 # the buckets are a list of double linked lists, the graph is a list of nodes, and a list of edges
 # to map this we need a dictionary, that maps the vertex to the element in the bucket (vertexElementReference)
@@ -175,56 +190,48 @@ def fm_pass(G):
     startPartion = graph_handler.getPartion(G)
     cut = graph_handler.getCut(G)
     lockedVertices = []
-    cuts = []
-    partions = []
     maxGain, maxGainElement = findMaximumGain(pickBucket)
-    cuts.append(cut)
+    
     while(maxGain!=-1):
         maxGainVertex = popVertrexFromBucket(maxGainElement, vertexElementReference,vertexBucketReference)
-        lockedVertices.append(maxGainVertex)
         pickBucketSize = pickBucketSize - 1
-        if (pickBucketSize == receiveBucketSize):
-            lockedVertices.append({"vertex": maxGainVertex, "valid": True})
-        else:
-            lockedVertices.append({"vertex": maxGainVertex, "valid": False})
-            
         
         partionColor = graph_handler.getNodeColor(G, maxGainVertex)
         graph_handler.setNodeColor(G,maxGainVertex, graph_handler.getOppositeColor(partionColor))
         
         # O(n) * O(updateGain)
         cut += updateGain(G, maxGainVertex, vertexBucketReference, vertexElementReference)
-        cuts.append(cut)
-    
+        if (pickBucketSize == receiveBucketSize):
+            lockedVertices.append({"vertex": maxGainVertex, "valid": True, "cut": cut})
+        else:
+            lockedVertices.append({"vertex": maxGainVertex, "valid": False, "cut": cut})
         
         
         pickBucket, pickBucketSize, receiveBucket, receiveBucketSize = bucketSelect(pickBucket, receiveBucket,pickBucketSize,receiveBucketSize)    
         maxGain, maxGainElement = findMaximumGain(pickBucket)
 
     endPartion = graph_handler.getPartion(G)
-
     assert(graph_handler.getComplement(G, startPartion) == endPartion ) # "fm has different start end partion" 
-
-    return G, -1,-1,-1#np.min(cuts), lockedVertices[np.argmin(cuts)], partions[np.argmin(cuts)] 
-
-          
+    lockedVertices.reverse()
+    return findBestPartion(G, lockedVertices)
+              
 
 def fm_search(G:nx.Graph):
     #Calculate maximum cardinality, maximum amount of edges any one vertex has, this is the maximum gain/loss
     #initialize the gain bucket as dictionary of lists
     
-    lastCut ,lastVertix, lastPartion = 999, None, graph_handler.getPartion(G)
+    lastCut , bestPartion, cut = 999,  graph_handler.getPartion(G), None
         
     cut = 998
     while cut < lastCut:
         lastCut = cut
-        graph_handler.setPartion(G, lastPartion)
+        graph_handler.setPartion(G, bestPartion)
         start = time.time()
-        G,cut,lastVertix, lastPartion = fm_pass(G)
+        G , bestPartion, cut = fm_pass(G)
 
         print(f'fm_pass time: {time.time() - start}')
 
-    return G, lastVertix, lastPartion
+    return G, bestPartion
 
 def testDoubleLinkedList():
     # TODO, just praying the foundation datastructure works properly lol...
@@ -240,8 +247,8 @@ def testDoubleLinkedList():
 
 def testFM():
     graphInit = graph_handler.createExampleGraph2()
-    graphResult,_,lastPartion = fm_search(graphInit.copy())
-    #graph_handler.setPartion(graphResult, lastPartion)
+    graphResult,lastPartion = fm_search(graphInit.copy())
+    graph_handler.setPartion(graphResult, lastPartion)
     graph_handler.vizualizeComparionsGraph(graphInit, graphResult)
     assert(len(graphInit.nodes) == len(graphResult.nodes))
     for node1, node2 in zip(graphInit.nodes, graphResult.nodes):
@@ -249,10 +256,10 @@ def testFM():
         #assert(G1.nodes[node1]["color"] != G2.nodes[node1]["color"])  # should be same partition
         
     graphInit = graph_handler.createExampleGraph1()
-    graphResult,_,_ = fm_search(graphInit.copy())
+    graphResult,_ = fm_search(graphInit.copy())
     graph_handler.vizualizeComparionsGraph(graphInit, graphResult)
     graphInit = graph_handler.createExampleGraph3()
-    graphResult,_,_ = fm_search(graphInit.copy())
+    graphResult,_ = fm_search(graphInit.copy())
     
     
 
