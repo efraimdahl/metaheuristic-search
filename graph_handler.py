@@ -4,17 +4,24 @@ import matplotlib.pyplot as plt
 
 COLOR_PARTION_0 = "green"
 COLOR_PARTION_1 = "red"
-
+BINARY_PARTION_0 = "0"
+BINARY_PARTION_1 = "1"
 # O(n)
-def getBinaryRepresentation(G):
+def getBinaryRepresentationAsString(G):
     res = ""
     for vertex in G.nodes():
         if getNodeColor(G, vertex) == COLOR_PARTION_0:
-            res += "0"
+            res += BINARY_PARTION_0
         else:
-            res += "1"
+            res += BINARY_PARTION_1
     return res
-    
+# O(n)
+def setByBinaryRepresentationFromList(G, binList):
+    for vertex, bit in zip(G.nodes(), binList):
+        if bit == BINARY_PARTION_0:
+            setNodeColor(G,vertex, COLOR_PARTION_0)
+        else:
+            setNodeColor(G,vertex, COLOR_PARTION_1)
 
 #Show Graph:
 def vizualize_graph(G):

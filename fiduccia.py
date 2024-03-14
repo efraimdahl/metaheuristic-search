@@ -1,4 +1,3 @@
-
 import networkx as nx
 import matplotlib.pyplot as plt
 import graph_handler
@@ -220,18 +219,18 @@ def fm_search(G:nx.Graph):
     #Calculate maximum cardinality, maximum amount of edges any one vertex has, this is the maximum gain/loss
     #initialize the gain bucket as dictionary of lists
     
-    lastCut , bestPartion, cut = 999,  graph_handler.getPartion(G), None
-        
-    cut = 998
-    while cut < lastCut:
-        lastCut = cut
-        graph_handler.setPartion(G, bestPartion)
-        start = time.time()
-        G , bestPartion, cut = fm_pass(G)
+    lastCut , newPartion, newCut = math.inf,  graph_handler.getPartion(G), 999999999999 
+    
+    while newCut < lastCut:
+        lastPartion = newPartion 
+        lastCut = newCut
+        graph_handler.setPartion(G, lastPartion)
+       # start = time.time()
+        G , newPartion, newCut = fm_pass(G)
 
-        print(f'fm_pass time: {time.time() - start}')
+        #print(f'fm_pass time: {time.time() - start}')
 
-    return G, bestPartion
+    return G, lastPartion,  lastCut
 
 def testDoubleLinkedList():
     # TODO, just praying the foundation datastructure works properly lol...
@@ -247,10 +246,10 @@ def testDoubleLinkedList():
 
 def testFM():
     graphInit = graph_handler.createExampleGraph2()
-    print(graph_handler.getBinaryRepresentation(graphInit))
+    print(graph_handler.getBinaryRepresentationAsString(graphInit))
     graphResult,lastPartion = fm_search(graphInit.copy())
     graph_handler.setPartion(graphResult, lastPartion)
-    print(graph_handler.getBinaryRepresentation(graphResult))
+    print(graph_handler.getBinaryRepresentationAsString(graphResult))
     graph_handler.vizualizeComparionsGraph(graphInit, graphResult)
     assert(len(graphInit.nodes) == len(graphResult.nodes))
     for node1, node2 in zip(graphInit.nodes, graphResult.nodes):
@@ -265,4 +264,4 @@ def testFM():
     
     
 
-testFM()
+#testFM()
