@@ -3,6 +3,8 @@ import graph_handler
 import networkx as nx
 import random
 import math
+import numpy as np
+
 
 def createRandomPartion(G):
     binStr = graph_handler.BINARY_PARTION_0 * int(len(G.nodes()) / 2)
@@ -23,6 +25,33 @@ def mls(G, numberRandoms = 10):
             bestPartion = partion
 
     graph_handler.setPartion(G, bestPartion) 
+
+
+
+def mutatePartition(binStr, numberOfMutations = 1):
+    assert( numberOfMutations <= (len(binStr) / 2))
+    binArray = np.array(list(binStr))
+    partion0Indicies = np.where(binArray == graph_handler.BINARY_PARTION_0)[0]
+    partion1Indicies = np.where(binArray == graph_handler.BINARY_PARTION_1)[0]
+    
+    partion0mutations = np.random.choice(partion0Indicies, numberOfMutations, replace=False) 
+    partion1mutations = np.random.choice(partion1Indicies, numberOfMutations, replace=False) 
+
+    res = graph_handler.BINARY_PARTION_0 * len(binStr)
+    res = list(res)
+    for p1 in partion1Indicies:
+        if not p1 in partion1mutations:
+            res[p1] = graph_handler.BINARY_PARTION_1
+    for p0 in partion0mutations:
+        res[p0] = graph_handler.BINARY_PARTION_1
+    for p1 in partion1mutations:
+        res[p1] = graph_handler.BINARY_PARTION_0
+
+    partion0Indicies = np.where(res == graph_handler.BINARY_PARTION_0)[0]
+    partion1Indicies = np.where(res == graph_handler.BINARY_PARTION_1)[0]
+    
+    assert(len(partion0Indicies) == len(partion1Indicies))
+    return "".join(str(s) for s in res)
 
 
 graphInit = graph_handler.parse_graph("res/Graph500.txt", True)
