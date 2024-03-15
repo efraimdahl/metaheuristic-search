@@ -4,7 +4,7 @@ import networkx as nx
 import random
 import math
 import numpy as np
-
+import time
 
 def createRandomPartition(G):
     binStr = graph_handler.BINARY_PARTITION_0 * int(len(G.nodes()) / 2)
@@ -15,8 +15,9 @@ def createRandomPartition(G):
 
 def mls(G, numberRandoms = 10, maxFMPasses= 10000):
     bestPartition = None
-    minCut = math.inf 
+    minCut = math.inf   
     fmCounter = 0
+    startTime = time.time()
     for run in range(numberRandoms):
         binList = createRandomPartition(G)
         graph_handler.setPartitionByBinaryList(G, binList)
@@ -26,9 +27,12 @@ def mls(G, numberRandoms = 10, maxFMPasses= 10000):
             minCut = cut
             bestPartition = partition
         if fmCounter >  maxFMPasses:
-            return graph_handler.setPartition(G, bestPartition) 
-
+            graph_handler.setPartition(G, bestPartition) 
+            return minCut, time.time() - startTime
     graph_handler.setPartition(G, bestPartition) 
+    return minCut, time.time() - startTime
+    
+
 
 
 
@@ -53,14 +57,16 @@ def mutatePartition(binStr, numberOfMutations = 1):
 
     return "".join(str(s) for s in res)
 
-def ils(G, startNumberOfMutations = 4, maxFmPasses = 10000):
+def ils(G, startNumberOfMutations = 4, maxFmPasses = 10000, maxTime = None):
     
     isImproved = True
     solution = createRandomPartition(G)
     graph_handler.setPartitionByBinaryList(G, list(solution))
     G, lastPartition, lastCut, fmCounter = fiduccia.fm_search(G)
     isFMCntMaxReached = False
-    while isImproved and not isFMCntMaxReached:
+    isMaxTimeReached = False
+    startTime = time.time()
+    while isImproved and not isFMCntMaxReached and not isMaxTimeReached:
         solution = graph_handler.getStringBinaryRepresentation(G)
         mutatedSolution = mutatePartition(solution, numberOfMutations=startNumberOfMutations)
         graph_handler.setPartitionByBinaryList(G, list(mutatedSolution))
@@ -71,16 +77,19 @@ def ils(G, startNumberOfMutations = 4, maxFmPasses = 10000):
             lastCut = newCut
             graph_handler.setPartition(G, newPartition)
         isFMCntMaxReached = fmCounter > maxFmPasses
+        if maxTime:
+            isMaxTimeReached = (time.time() - startTime) >  maxTime
         
             
 
 
-    return G, lastPartition, lastCut
+    return lastPartition, lastCut, fmCounter, time.time() -startTime
     
-
-
 graphInit = graph_handler.parse_graph("res/Graph500.txt", False)
-G, _, cut = ils(graphInit, 10)
-print(cut)
+
+mlsCut, runTimeMLS = mls(graphInit.copy())
+G, _, ilsCut, runTimeILS = ils(graphInit.copy(), 10,maxTime=runTimeMLS)
+print(f"MLS Cut: {mlsCut}")
+print(f"ILS Cut: {ilsCut}")
 #print(graph_handler.getStringBinaryRepresentation(graphInit))
 graph_handler.vizualize_graph(graphInit)
