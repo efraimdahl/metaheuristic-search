@@ -49,8 +49,31 @@ def mutatePartition(binStr, numberOfMutations = 1):
 
     return "".join(str(s) for s in res)
 
-m = mutatePartition("1111100000", numberOfMutations=2)
-graphInit = graph_handler.parse_graph("res/Graph500.txt", True)
-mls(graphInit, 10)
-print(graph_handler.getStringBinaryRepresentation(graphInit))
+def ils(G, startNumberOfMutations = 4):
+    
+    isImproved = True
+    solution = createRandomPartition(G)
+    graph_handler.setPartitionByBinaryList(G, list(solution))
+    G, lastPartition, lastCut, cntFMPass = fiduccia.fm_search(G)
+    
+    while isImproved:
+        solution = graph_handler.getStringBinaryRepresentation(G)
+        mutatedSolution = mutatePartition(solution, numberOfMutations=startNumberOfMutations)
+        graph_handler.setPartitionByBinaryList(G, list(mutatedSolution))
+        G, newPartition, newCut, cntFMPass = fiduccia.fm_search(G)
+        isImproved = newCut < lastCut
+        if isImproved:
+            lastCut = newCut
+            graph_handler.setPartition(G, newPartition)
+            
+
+
+    return G, lastPartition, lastCut
+    
+
+
+graphInit = graph_handler.parse_graph("res/Graph500.txt", False)
+G, _, cut = ils(graphInit, 10)
+print(cut)
+#print(graph_handler.getStringBinaryRepresentation(graphInit))
 graph_handler.vizualize_graph(graphInit)
