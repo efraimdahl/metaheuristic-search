@@ -13,12 +13,12 @@ def createRandomPartition(G):
     random.shuffle(binList)
     return binList
 
-def mls(G, numberRandoms = 10, maxFMPasses= 10000):
+def mls(G, maxFmPasses= 10000):
     bestPartition = None
     minCut = math.inf   
     fmCounter = 0
     startTime = time.time()
-    for run in range(numberRandoms):
+    while fmCounter < maxFmPasses:
         binList = createRandomPartition(G)
         graph_handler.setPartitionByBinaryList(G, binList)
         G, partition, cut, cntFMPass = fiduccia.fm_search(G)
@@ -26,9 +26,7 @@ def mls(G, numberRandoms = 10, maxFMPasses= 10000):
         if cut  < minCut:
             minCut = cut
             bestPartition = partition
-        if fmCounter >  maxFMPasses:
-            graph_handler.setPartition(G, bestPartition) 
-            return minCut, time.time() - startTime
+        
     graph_handler.setPartition(G, bestPartition) 
     return G, minCut, time.time() - startTime
     
@@ -86,12 +84,3 @@ def ils(G, startNumberOfMutations = 4, maxFmPasses = 10000, maxTime = None, part
 
     return G, lastCut, fmCounter, time.time() -startTime
     
-graphInit = graph_handler.parse_graph("res/Graph500.txt", False)
-
-G, mlsCut, runTimeMLS = mls(graphInit.copy())
-G,_, ilsCut, runTimeILS = ils(graphInit.copy(), 5,maxTime=runTimeMLS)
-
-print(f"MLS Cut: {mlsCut}")
-print(f"ILS Cut: {ilsCut}")
-#print(graph_handler.getStringBinaryRepresentation(graphInit))
-graph_handler.vizualize_graph(graphInit)
