@@ -220,17 +220,15 @@ def fm_search(G:nx.Graph):
     #initialize the gain bucket as dictionary of lists
     
     lastCut , newPartion, newCut = math.inf,  graph_handler.getPartion(G), 999999999999 
-    
+    counter = 0
     while newCut < lastCut:
         lastPartion = newPartion 
         lastCut = newCut
         graph_handler.setPartion(G, lastPartion)
-       # start = time.time()
-        G , newPartion, newCut = fm_pass(G)
-
-        #print(f'fm_pass time: {time.time() - start}')
-
-    return G, lastPartion,  lastCut
+        G , newPartion, newCut, cntFMPass = fm_pass(G)
+        counter += 1
+       
+    return G, lastPartion,  lastCut, counter
 
 def testDoubleLinkedList():
     # TODO, just praying the foundation datastructure works properly lol...

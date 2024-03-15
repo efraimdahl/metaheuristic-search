@@ -17,7 +17,7 @@ def mls(G, numberRandoms = 10):
     for run in range(numberRandoms):
         binList = createRandomPartion(G)
         graph_handler.setPartionByBinaryList(G, binList)
-        G, partion, cut = fiduccia.fm_search(G)
+        G, partion, cut, cntFMPass = fiduccia.fm_search(G)
         if cut  < minCut:
             minCut = cut
             bestPartion = partion
