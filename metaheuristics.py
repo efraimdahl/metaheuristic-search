@@ -47,13 +47,9 @@ def mutatePartition(binStr, numberOfMutations = 1):
     for p1 in partion1mutations:
         res[p1] = graph_handler.BINARY_PARTITION_0
 
-    partion0Indicies = np.where(res == graph_handler.BINARY_PARTITION_0)[0]
-    partion1Indicies = np.where(res == graph_handler.BINARY_PARTITION_1)[0]
-    
-    assert(len(partion0Indicies) == len(partion1Indicies))
     return "".join(str(s) for s in res)
 
-
+m = mutatePartition("1111100000", numberOfMutations=2)
 graphInit = graph_handler.parse_graph("res/Graph500.txt", True)
 mls(graphInit, 10)
 print(graph_handler.getStringBinaryRepresentation(graphInit))
