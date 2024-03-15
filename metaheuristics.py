@@ -57,18 +57,19 @@ def mutatePartition(binStr, numberOfMutations = 1):
 
     return "".join(str(s) for s in res)
 
-def ils(G, startNumberOfMutations = 4, maxFmPasses = 10000, maxTime = None):
+def ils(G, startNumberOfMutations = 4, maxFmPasses = 10000, maxTime = None, partition = None):
     
     isImproved = True
-    solution = createRandomPartition(G)
-    graph_handler.setPartitionByBinaryList(G, list(solution))
+    if not partition:
+        partition = createRandomPartition(G)
+    graph_handler.setPartitionByBinaryList(G, list(partition))
     G, lastPartition, lastCut, fmCounter = fiduccia.fm_search(G)
     isFMCntMaxReached = False
     isMaxTimeReached = False
     startTime = time.time()
     while isImproved and not isFMCntMaxReached and not isMaxTimeReached:
-        solution = graph_handler.getStringBinaryRepresentation(G)
-        mutatedSolution = mutatePartition(solution, numberOfMutations=startNumberOfMutations)
+        partition = graph_handler.getStringBinaryRepresentation(G)
+        mutatedSolution = mutatePartition(partition, numberOfMutations=startNumberOfMutations)
         graph_handler.setPartitionByBinaryList(G, list(mutatedSolution))
         G, newPartition, newCut, cntFMPass = fiduccia.fm_search(G)
         fmCounter += cntFMPass 
@@ -83,12 +84,13 @@ def ils(G, startNumberOfMutations = 4, maxFmPasses = 10000, maxTime = None):
             
 
 
-    return lastPartition, lastCut, fmCounter, time.time() -startTime
+    return G, lastPartition, lastCut, fmCounter, time.time() -startTime
     
 graphInit = graph_handler.parse_graph("res/Graph500.txt", False)
 
 mlsCut, runTimeMLS = mls(graphInit.copy())
-G, _, ilsCut, runTimeILS = ils(graphInit.copy(), 10,maxTime=runTimeMLS)
+G,_, _, ilsCut, runTimeILS = ils(graphInit.copy(), 5,maxTime=runTimeMLS)
+
 print(f"MLS Cut: {mlsCut}")
 print(f"ILS Cut: {ilsCut}")
 #print(graph_handler.getStringBinaryRepresentation(graphInit))
