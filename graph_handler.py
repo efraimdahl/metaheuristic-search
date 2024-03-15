@@ -2,26 +2,26 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import re
 
-COLOR_PARTION_0 = "green"
-COLOR_PARTION_1 = "red"
-BINARY_PARTION_0 = "0"
-BINARY_PARTION_1 = "1"
+COLOR_PARTITION_0 = "green"
+COLOR_PARTITION_1 = "red"
+BINARY_PARTITION_0 = "0"
+BINARY_PARTITION_1 = "1"
 # O(n)
 def getStringBinaryRepresentation(G):
     res = ""
     for vertex in G.nodes():
-        if getNodeColor(G, vertex) == COLOR_PARTION_0:
-            res += BINARY_PARTION_0
+        if getNodeColor(G, vertex) == COLOR_PARTITION_0:
+            res += BINARY_PARTITION_0
         else:
-            res += BINARY_PARTION_1
+            res += BINARY_PARTITION_1
     return res
 # O(n)
-def setPartionByBinaryList(G, binList):
+def setPartitionByBinaryList(G, binList):
     for vertex, bit in zip(G.nodes(), binList):
-        if bit == BINARY_PARTION_0:
-            setNodeColor(G,vertex, COLOR_PARTION_0)
+        if bit == BINARY_PARTITION_0:
+            setNodeColor(G,vertex, COLOR_PARTITION_0)
         else:
-            setNodeColor(G,vertex, COLOR_PARTION_1)
+            setNodeColor(G,vertex, COLOR_PARTITION_1)
 
 #Show Graph:
 def vizualize_graph(G):
@@ -48,21 +48,21 @@ def getNodeColor(G, vertex):
     return G.nodes[vertex]["color"]
 
 def getComplementColor(color):
-    if color == COLOR_PARTION_0:
-        return COLOR_PARTION_1
-    return COLOR_PARTION_0
+    if color == COLOR_PARTITION_0:
+        return COLOR_PARTITION_1
+    return COLOR_PARTITION_0
 
 
 
-def getPartion(G):
-    return getVerticiesByColor(G, COLOR_PARTION_0)
+def getPartition(G):
+    return getVerticiesByColor(G, COLOR_PARTITION_0)
 
-def setPartion(G, vertices):
+def setPartition(G, vertices):
     for vertex in G.nodes():
         if vertex in vertices:
-            setNodeColor(G,vertex, COLOR_PARTION_0)
+            setNodeColor(G,vertex, COLOR_PARTITION_0)
         else:
-            setNodeColor(G,vertex, COLOR_PARTION_1)
+            setNodeColor(G,vertex, COLOR_PARTITION_1)
 
 def getVerticiesByColor(G, color): # O(n)
     cutVertexList = []
@@ -75,7 +75,7 @@ def getVerticiesByColor(G, color): # O(n)
 def getCut(G): # O(n) + O(cut_size)
     cutVertexList = []
     for vertex in G.nodes():
-        if getNodeColor(G,vertex) == COLOR_PARTION_0:    #   TODOC: partition color does not matter, since cut is symetric 
+        if getNodeColor(G,vertex) == COLOR_PARTITION_0:    #   TODOC: partition color does not matter, since cut is symetric 
             cutVertexList.append(vertex)
     
     return nx.cut_size(G, cutVertexList)

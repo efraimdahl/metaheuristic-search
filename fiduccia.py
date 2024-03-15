@@ -92,7 +92,7 @@ def initializeBuckets(G):
     for vertex in G.nodes:
         
         gaindex = calculateGain(G,vertex)+maxCard
-        if(graph_handler.getNodeColor(G, vertex) == graph_handler.COLOR_PARTION_0):
+        if(graph_handler.getNodeColor(G, vertex) == graph_handler.COLOR_PARTITION_0):
             cell = lBucket[gaindex].append(vertex, gaindex)
             vertexElementReference[vertex] = cell
             vertexBucketReference[vertex] = lBucket
@@ -161,14 +161,14 @@ def updateGain(G, maxGainVertex,vertexBucketReference, vertexElementReference):
         vertexElementReference[neighborVertex] = neighborElement 
     return cutUpdate
 
-def findBestPartion(G,  lockedVertices):
+def findBestPartition(G,  lockedVertices):
     minCut = math.inf
     for v in lockedVertices:
         if v["valid"]:
             minCut = min(minCut, v["cut"])
     for vertex in lockedVertices:
         if (minCut == vertex["cut"] and vertex["valid"]):
-            return G, graph_handler.getPartion(G), minCut
+            return G, graph_handler.getPartition(G), minCut
         
         vertexColor = graph_handler.getNodeColor(G, vertex["vertex"])
         graph_handler.setNodeColor(G, vertex["vertex"], graph_handler.getComplementColor(vertexColor))
@@ -186,7 +186,7 @@ def fm_pass(G):
     """
     lBucket,rBucket,lBucketsize,rBucketsize, vertexElementReference, vertexBucketReference=initializeBuckets(G)
     pickBucket, pickBucketSize, receiveBucket, receiveBucketSize = bucketSelect(lBucket, rBucket,lBucketsize,rBucketsize)
-    startPartion = graph_handler.getPartion(G)
+    startPartition = graph_handler.getPartition(G)
     cut = graph_handler.getCut(G)
     lockedVertices = []
     maxGain, maxGainElement = findMaximumGain(pickBucket)
@@ -209,26 +209,26 @@ def fm_pass(G):
         pickBucket, pickBucketSize, receiveBucket, receiveBucketSize = bucketSelect(pickBucket, receiveBucket,pickBucketSize,receiveBucketSize)    
         maxGain, maxGainElement = findMaximumGain(pickBucket)
 
-    endPartion = graph_handler.getPartion(G)
-    assert(graph_handler.getComplement(G, startPartion) == endPartion ) # "fm has different start end partion" 
+    endPartition = graph_handler.getPartition(G)
+    assert(graph_handler.getComplement(G, startPartition) == endPartition ) # "fm has different start end partion" 
     lockedVertices.reverse()
-    return findBestPartion(G, lockedVertices)
+    return findBestPartition(G, lockedVertices)
               
 
 def fm_search(G:nx.Graph):
     #Calculate maximum cardinality, maximum amount of edges any one vertex has, this is the maximum gain/loss
     #initialize the gain bucket as dictionary of lists
     
-    lastCut , newPartion, newCut = math.inf,  graph_handler.getPartion(G), 999999999999 
+    lastCut , newPartition, newCut = math.inf,  graph_handler.getPartition(G), 999999999999 
     counter = 0
     while newCut < lastCut:
-        lastPartion = newPartion 
+        lastPartition = newPartition 
         lastCut = newCut
-        graph_handler.setPartion(G, lastPartion)
-        G , newPartion, newCut = fm_pass(G)
+        graph_handler.setPartition(G, lastPartition)
+        G , newPartition, newCut = fm_pass(G)
         counter += 1
        
-    return G, lastPartion,  lastCut, counter
+    return G, lastPartition,  lastCut, counter
 
 def testDoubleLinkedList():
     # TODO, just praying the foundation datastructure works properly lol...
@@ -245,8 +245,8 @@ def testDoubleLinkedList():
 def testFM():
     graphInit = graph_handler.createExampleGraph2()
     print(graph_handler.getStringBinaryRepresentation(graphInit))
-    graphResult,lastPartion,_,_ = fm_search(graphInit.copy())
-    graph_handler.setPartion(graphResult, lastPartion)
+    graphResult,lastPartition,_,_ = fm_search(graphInit.copy())
+    graph_handler.setPartition(graphResult, lastPartition)
     print(graph_handler.getStringBinaryRepresentation(graphResult))
     graph_handler.vizualizeComparionsGraph(graphInit, graphResult)
     assert(len(graphInit.nodes) == len(graphResult.nodes))
