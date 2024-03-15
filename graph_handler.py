@@ -35,7 +35,7 @@ def vizualizeComparionsGraph(GLeft,GRight):
     G=nx.grid_2d_graph(2,1) 
     plt.subplot(221)
     pos = nx.spring_layout(GLeft)
-    color_map = [GLeft.nodes[node]['color'] for node in GLeft]   
+    color_map = [GLeft.nodes[node]["color"] for node in GLeft]   
     nx.draw(GLeft, pos, with_labels=True,node_color=color_map)
     plt.subplot(222)
     pos = nx.spring_layout(GRight)
@@ -127,6 +127,16 @@ def createExampleGraph3():
     vertices = [('A',{"color":"red",}),('B',{"color":"red",}),('C',{"color":"red",}),('D',{"color":"green"}, )]
     edges = [('A','B'),('A','C'),('B','C'),('B','A'),('C','B'),('B','C'),('C', 'A') , ('C','D'),('D','C')]
     return createGraph(vertices, edges) 
+
+def createExampleGraph4():
+    vertices = [('A', {"color":"red",}),('B', {"color":"red",}),('C', {"color":"red",}),('D', {"color":"red",}),
+                ('E', {"color":"red",}),('F', {"color":"red",}),('M', {"color":"red",}),('G', {"color":"green",}),
+                ('H', {"color":"green",}),('I', {"color":"green",}),('J', {"color":"green",}),('K', {"color":"green",}),
+                ('L', {"color":"green"},)]
+    edges = [('A', 'C'), ('A', 'D'), ('A', 'E'), ('A', 'F'), ('A', 'M'), ('A', 'G'), ('A', 'H'), ('A', 'I'), ('A', 'J'), 
+             ('A', 'K'),('A', 'L'), ('C', 'D'), ('C', 'D'), ('C', 'K'), ('E', 'M'), ('E', 'F'), ('G', 'H'), ('G', 'J'),
+             ('H', 'J'), ('I', 'L')]
+    return createGraph(vertices, edges)
 
 def createGraph(vertices, edges):
     G = nx.Graph()

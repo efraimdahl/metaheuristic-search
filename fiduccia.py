@@ -245,7 +245,7 @@ def testDoubleLinkedList():
 def testFM():
     graphInit = graph_handler.createExampleGraph2()
     print(graph_handler.getStringBinaryRepresentation(graphInit))
-    graphResult,lastPartion = fm_search(graphInit.copy())
+    graphResult,lastPartion,_,_ = fm_search(graphInit.copy())
     graph_handler.setPartion(graphResult, lastPartion)
     print(graph_handler.getStringBinaryRepresentation(graphResult))
     graph_handler.vizualizeComparionsGraph(graphInit, graphResult)
@@ -255,11 +255,18 @@ def testFM():
         #assert(G1.nodes[node1]["color"] != G2.nodes[node1]["color"])  # should be same partition
         
     graphInit = graph_handler.createExampleGraph1()
-    graphResult,_ = fm_search(graphInit.copy())
+    graphResult,_,_,_ = fm_search(graphInit.copy())
     graph_handler.vizualizeComparionsGraph(graphInit, graphResult)
-    graphInit = graph_handler.createExampleGraph3()
-    graphResult,_ = fm_search(graphInit.copy())
+
+    #graphInit = graph_handler.createExampleGraph3()
+    #graphResult,_,_,_ = fm_search(graphInit.copy())
+    #graph_handler.vizualizeComparionsGraph(graphInit, graphResult)
+
+    graphInit = graph_handler.createExampleGraph4()
+    graphResult,_,_,_ = fm_search(graphInit.copy())
+    graph_handler.vizualizeComparionsGraph(graphInit, graphResult)
+
     
     
 
-#testFM()
+testFM()
