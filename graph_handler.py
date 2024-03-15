@@ -6,6 +6,7 @@ COLOR_PARTION_0 = "green"
 COLOR_PARTION_1 = "red"
 BINARY_PARTION_0 = "0"
 BINARY_PARTION_1 = "1"
+
 # O(n)
 def getStringBinaryRepresentation(G):
     res = ""
