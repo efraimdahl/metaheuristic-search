@@ -225,7 +225,7 @@ def fm_search(G:nx.Graph):
         lastPartion = newPartion 
         lastCut = newCut
         graph_handler.setPartion(G, lastPartion)
-        G , newPartion, newCut, cntFMPass = fm_pass(G)
+        G , newPartion, newCut = fm_pass(G)
         counter += 1
        
     return G, lastPartion,  lastCut, counter
