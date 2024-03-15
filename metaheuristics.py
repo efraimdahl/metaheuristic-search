@@ -19,10 +19,10 @@ def mls(G, numberRandoms = 10):
     for run in range(numberRandoms):
         binList = createRandomPartition(G)
         graph_handler.setPartitionByBinaryList(G, binList)
-        G, partion, cut, cntFMPass = fiduccia.fm_search(G)
+        G, partition, cut, cntFMPass = fiduccia.fm_search(G)
         if cut  < minCut:
             minCut = cut
-            bestPartition = partion
+            bestPartition = partition
 
     graph_handler.setPartition(G, bestPartition) 
 
@@ -31,20 +31,20 @@ def mls(G, numberRandoms = 10):
 def mutatePartition(binStr, numberOfMutations = 1):
     assert( numberOfMutations <= (len(binStr) / 2))
     binArray = np.array(list(binStr))
-    partion0Indicies = np.where(binArray == graph_handler.BINARY_PARTITION_0)[0]
-    partion1Indicies = np.where(binArray == graph_handler.BINARY_PARTITION_1)[0]
+    partition0Indicies = np.where(binArray == graph_handler.BINARY_PARTITION_0)[0]
+    partition1Indicies = np.where(binArray == graph_handler.BINARY_PARTITION_1)[0]
     
-    partion0mutations = np.random.choice(partion0Indicies, numberOfMutations, replace=False) 
-    partion1mutations = np.random.choice(partion1Indicies, numberOfMutations, replace=False) 
+    partition0mutations = np.random.choice(partition0Indicies, numberOfMutations, replace=False) 
+    partition1mutations = np.random.choice(partition1Indicies, numberOfMutations, replace=False) 
 
     res = graph_handler.BINARY_PARTITION_0 * len(binStr)
     res = list(res)
-    for p1 in partion1Indicies:
-        if not p1 in partion1mutations:
+    for p1 in partition1Indicies:
+        if not p1 in partition1mutations:
             res[p1] = graph_handler.BINARY_PARTITION_1
-    for p0 in partion0mutations:
+    for p0 in partition0mutations:
         res[p0] = graph_handler.BINARY_PARTITION_1
-    for p1 in partion1mutations:
+    for p1 in partition1mutations:
         res[p1] = graph_handler.BINARY_PARTITION_0
 
     return "".join(str(s) for s in res)

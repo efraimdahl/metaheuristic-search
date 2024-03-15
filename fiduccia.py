@@ -195,8 +195,8 @@ def fm_pass(G):
         maxGainVertex = popVertrexFromBucket(maxGainElement, vertexElementReference,vertexBucketReference)
         pickBucketSize = pickBucketSize - 1
         
-        partionColor = graph_handler.getNodeColor(G, maxGainVertex)
-        graph_handler.setNodeColor(G,maxGainVertex, graph_handler.getComplementColor(partionColor))
+        partitionColor = graph_handler.getNodeColor(G, maxGainVertex)
+        graph_handler.setNodeColor(G,maxGainVertex, graph_handler.getComplementColor(partitionColor))
         
         # O(n) * O(updateGain)
         cut += updateGain(G, maxGainVertex, vertexBucketReference, vertexElementReference)
@@ -210,7 +210,7 @@ def fm_pass(G):
         maxGain, maxGainElement = findMaximumGain(pickBucket)
 
     endPartition = graph_handler.getPartition(G)
-    assert(graph_handler.getComplement(G, startPartition) == endPartition ) # "fm has different start end partion" 
+    assert(graph_handler.getComplement(G, startPartition) == endPartition ) # "fm has different start end partition" 
     lockedVertices.reverse()
     return findBestPartition(G, lockedVertices)
               
