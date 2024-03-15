@@ -65,7 +65,7 @@ def ils(G, startNumberOfMutations = 4, maxFmPasses = 10000, maxTime = None, part
     isFMCntMaxReached = False
     isMaxTimeReached = False
     startTime = time.time()
-    while isImproved and not isFMCntMaxReached and not isMaxTimeReached:
+    while not isFMCntMaxReached and not isMaxTimeReached:
         partition = graph_handler.getStringBinaryRepresentation(G)
         mutatedSolution = mutatePartition(partition, numberOfMutations=startNumberOfMutations)
         graph_handler.setPartitionByBinaryList(G, list(mutatedSolution))
@@ -75,7 +75,8 @@ def ils(G, startNumberOfMutations = 4, maxFmPasses = 10000, maxTime = None, part
         if isImproved:
             lastCut = newCut
             graph_handler.setPartition(G, newPartition)
-        isFMCntMaxReached = fmCounter > maxFmPasses
+        if maxFmPasses:
+            isFMCntMaxReached = fmCounter > maxFmPasses
         if maxTime:
             isMaxTimeReached = (time.time() - startTime) >  maxTime
         
