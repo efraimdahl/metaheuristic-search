@@ -13,16 +13,20 @@ def createRandomPartition(G):
     random.shuffle(binList)
     return binList
 
-def mls(G, numberRandoms = 10):
+def mls(G, numberRandoms = 10, maxFMPasses= 10000):
     bestPartition = None
     minCut = math.inf 
+    fmCounter = 0
     for run in range(numberRandoms):
         binList = createRandomPartition(G)
         graph_handler.setPartitionByBinaryList(G, binList)
         G, partition, cut, cntFMPass = fiduccia.fm_search(G)
+        fmCounter += cntFMPass
         if cut  < minCut:
             minCut = cut
             bestPartition = partition
+        if fmCounter >  maxFMPasses:
+            return graph_handler.setPartition(G, bestPartition) 
 
     graph_handler.setPartition(G, bestPartition) 
 
@@ -49,22 +53,25 @@ def mutatePartition(binStr, numberOfMutations = 1):
 
     return "".join(str(s) for s in res)
 
-def ils(G, startNumberOfMutations = 4):
+def ils(G, startNumberOfMutations = 4, maxFmPasses = 10000):
     
     isImproved = True
     solution = createRandomPartition(G)
     graph_handler.setPartitionByBinaryList(G, list(solution))
-    G, lastPartition, lastCut, cntFMPass = fiduccia.fm_search(G)
-    
-    while isImproved:
+    G, lastPartition, lastCut, fmCounter = fiduccia.fm_search(G)
+    isFMCntMaxReached = False
+    while isImproved and not isFMCntMaxReached:
         solution = graph_handler.getStringBinaryRepresentation(G)
         mutatedSolution = mutatePartition(solution, numberOfMutations=startNumberOfMutations)
         graph_handler.setPartitionByBinaryList(G, list(mutatedSolution))
         G, newPartition, newCut, cntFMPass = fiduccia.fm_search(G)
+        fmCounter += cntFMPass 
         isImproved = newCut < lastCut
         if isImproved:
             lastCut = newCut
             graph_handler.setPartition(G, newPartition)
+        isFMCntMaxReached = fmCounter > maxFmPasses
+        
             
 
 
