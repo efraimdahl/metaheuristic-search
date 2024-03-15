@@ -88,7 +88,7 @@ def ils(G, startNumberOfMutations = 4, maxFmPasses = 10000, maxTime = None, part
     
 graphInit = graph_handler.parse_graph("res/Graph500.txt", False)
 
-mlsCut, runTimeMLS = mls(graphInit.copy())
+G, mlsCut, runTimeMLS = mls(graphInit.copy())
 G,_, ilsCut, runTimeILS = ils(graphInit.copy(), 5,maxTime=runTimeMLS)
 
 print(f"MLS Cut: {mlsCut}")
