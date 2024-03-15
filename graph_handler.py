@@ -2,27 +2,26 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import re
 
-COLOR_PARTION_0 = "green"
-COLOR_PARTION_1 = "red"
-BINARY_PARTION_0 = "0"
-BINARY_PARTION_1 = "1"
-
+COLOR_PARTITION_0 = "green"
+COLOR_PARTITION_1 = "red"
+BINARY_PARTITION_0 = "0"
+BINARY_PARTITION_1 = "1"
 # O(n)
 def getStringBinaryRepresentation(G):
     res = ""
     for vertex in G.nodes():
-        if getNodeColor(G, vertex) == COLOR_PARTION_0:
-            res += BINARY_PARTION_0
+        if getNodeColor(G, vertex) == COLOR_PARTITION_0:
+            res += BINARY_PARTITION_0
         else:
-            res += BINARY_PARTION_1
+            res += BINARY_PARTITION_1
     return res
 # O(n)
-def setPartionByBinaryList(G, binList):
+def setPartitionByBinaryList(G, binList):
     for vertex, bit in zip(G.nodes(), binList):
-        if bit == BINARY_PARTION_0:
-            setNodeColor(G,vertex, COLOR_PARTION_0)
+        if bit == BINARY_PARTITION_0:
+            setNodeColor(G,vertex, COLOR_PARTITION_0)
         else:
-            setNodeColor(G,vertex, COLOR_PARTION_1)
+            setNodeColor(G,vertex, COLOR_PARTITION_1)
 
 #Show Graph:
 def vizualize_graph(G):
@@ -36,7 +35,7 @@ def vizualizeComparionsGraph(GLeft,GRight):
     G=nx.grid_2d_graph(2,1) 
     plt.subplot(221)
     pos = nx.spring_layout(GLeft)
-    color_map = [GLeft.nodes[node]['color'] for node in GLeft]   
+    color_map = [GLeft.nodes[node]["color"] for node in GLeft]   
     nx.draw(GLeft, pos, with_labels=True,node_color=color_map)
     plt.subplot(222)
     pos = nx.spring_layout(GRight)
@@ -49,21 +48,21 @@ def getNodeColor(G, vertex):
     return G.nodes[vertex]["color"]
 
 def getComplementColor(color):
-    if color == COLOR_PARTION_0:
-        return COLOR_PARTION_1
-    return COLOR_PARTION_0
+    if color == COLOR_PARTITION_0:
+        return COLOR_PARTITION_1
+    return COLOR_PARTITION_0
 
 
 
-def getPartion(G):
-    return getVerticiesByColor(G, COLOR_PARTION_0)
+def getPartition(G):
+    return getVerticiesByColor(G, COLOR_PARTITION_0)
 
-def setPartion(G, vertices):
+def setPartition(G, vertices):
     for vertex in G.nodes():
         if vertex in vertices:
-            setNodeColor(G,vertex, COLOR_PARTION_0)
+            setNodeColor(G,vertex, COLOR_PARTITION_0)
         else:
-            setNodeColor(G,vertex, COLOR_PARTION_1)
+            setNodeColor(G,vertex, COLOR_PARTITION_1)
 
 def getVerticiesByColor(G, color): # O(n)
     cutVertexList = []
@@ -76,7 +75,7 @@ def getVerticiesByColor(G, color): # O(n)
 def getCut(G): # O(n) + O(cut_size)
     cutVertexList = []
     for vertex in G.nodes():
-        if getNodeColor(G,vertex) == COLOR_PARTION_0:    #   TODOC: partition color does not matter, since cut is symetric 
+        if getNodeColor(G,vertex) == COLOR_PARTITION_0:    #   TODOC: partition color does not matter, since cut is symetric 
             cutVertexList.append(vertex)
     
     return nx.cut_size(G, cutVertexList)
@@ -128,6 +127,16 @@ def createExampleGraph3():
     vertices = [('A',{"color":"red",}),('B',{"color":"red",}),('C',{"color":"red",}),('D',{"color":"green"}, )]
     edges = [('A','B'),('A','C'),('B','C'),('B','A'),('C','B'),('B','C'),('C', 'A') , ('C','D'),('D','C')]
     return createGraph(vertices, edges) 
+
+def createExampleGraph4():
+    vertices = [('A', {"color":"red",}),('B', {"color":"red",}),('C', {"color":"red",}),('D', {"color":"red",}),
+                ('E', {"color":"red",}),('F', {"color":"red",}),('M', {"color":"red",}),('G', {"color":"green",}),
+                ('H', {"color":"green",}),('I', {"color":"green",}),('J', {"color":"green",}),('K', {"color":"green",}),
+                ('L', {"color":"green"},)]
+    edges = [('A', 'C'), ('A', 'D'), ('A', 'E'), ('A', 'F'), ('A', 'M'), ('A', 'G'), ('A', 'H'), ('A', 'I'), ('A', 'J'), 
+             ('A', 'K'),('A', 'L'), ('C', 'D'), ('C', 'D'), ('C', 'K'), ('E', 'M'), ('E', 'F'), ('G', 'H'), ('G', 'J'),
+             ('H', 'J'), ('I', 'L')]
+    return createGraph(vertices, edges)
 
 def createGraph(vertices, edges):
     G = nx.Graph()
