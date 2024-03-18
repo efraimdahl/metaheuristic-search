@@ -6,6 +6,14 @@ COLOR_PARTITION_0 = "green"
 COLOR_PARTITION_1 = "red"
 BINARY_PARTITION_0 = "0"
 BINARY_PARTITION_1 = "1"
+
+# O(n)
+def getListBinaryRepresentation(G):
+    res,i = [-1]*len(G.nodes()),0
+    for vertex in G.nodes():
+        res[i]=BINARY_PARTITION_0 if getNodeColor(G,vertex)==COLOR_PARTITION_0 else BINARY_PARTITION_1
+        i+=1
+    return res
 # O(n)
 def getStringBinaryRepresentation(G):
     res = ""
