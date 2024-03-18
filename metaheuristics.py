@@ -4,7 +4,7 @@ import networkx as nx
 import random
 import math
 import numpy as np
-
+import time
 
 def createRandomPartition(G):
     binStr = graph_handler.BINARY_PARTITION_0 * int(len(G.nodes()) / 2)
@@ -13,18 +13,24 @@ def createRandomPartition(G):
     random.shuffle(binList)
     return binList
 
-def mls(G, numberRandoms = 10):
+def mls(G, maxFmPasses= 10000):
     bestPartition = None
-    minCut = math.inf 
-    for run in range(numberRandoms):
+    minCut = math.inf   
+    fmCounter = 0
+    startTime = time.time()
+    while fmCounter < maxFmPasses:
         binList = createRandomPartition(G)
         graph_handler.setPartitionByBinaryList(G, binList)
         G, partition, cut, cntFMPass = fiduccia.fm_search(G)
+        fmCounter += cntFMPass
         if cut  < minCut:
             minCut = cut
             bestPartition = partition
-
+        
     graph_handler.setPartition(G, bestPartition) 
+    return G, minCut, time.time() - startTime
+    
+
 
 
 
@@ -49,8 +55,33 @@ def mutatePartition(binStr, numberOfMutations = 1):
 
     return "".join(str(s) for s in res)
 
-m = mutatePartition("1111100000", numberOfMutations=2)
-graphInit = graph_handler.parse_graph("res/Graph500.txt", True)
-mls(graphInit, 10)
-print(graph_handler.getStringBinaryRepresentation(graphInit))
-graph_handler.vizualize_graph(graphInit)
+def ils(G, startNumberOfMutations = 4, maxFmPasses = 10000, maxTime = None, partition = None):
+    
+    isImproved = True
+    if not partition:
+        partition = createRandomPartition(G)
+    graph_handler.setPartitionByBinaryList(G, list(partition))
+    G, lastPartition, lastCut, fmCounter = fiduccia.fm_search(G)
+    isFMCntMaxReached = False
+    isMaxTimeReached = False
+    startTime = time.time()
+    while not isFMCntMaxReached and not isMaxTimeReached:
+        partition = graph_handler.getStringBinaryRepresentation(G)
+        mutatedSolution = mutatePartition(partition, numberOfMutations=startNumberOfMutations)
+        graph_handler.setPartitionByBinaryList(G, list(mutatedSolution))
+        G, newPartition, newCut, cntFMPass = fiduccia.fm_search(G)
+        fmCounter += cntFMPass 
+        isImproved = newCut < lastCut
+        if isImproved:
+            lastCut = newCut
+            graph_handler.setPartition(G, newPartition)
+        if maxFmPasses:
+            isFMCntMaxReached = fmCounter > maxFmPasses
+        if maxTime:
+            isMaxTimeReached = (time.time() - startTime) >  maxTime
+        
+            
+
+
+    return G, lastCut, fmCounter, time.time() -startTime
+    
