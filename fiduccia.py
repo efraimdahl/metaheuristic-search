@@ -229,8 +229,7 @@ def fm_search(G:nx.Graph):
         G , newPartition, newCut = fm_pass(G)
         all_cuts.append(newCut)
         counter += 1
-       
-    return G, lastPartition,  lastCut, counter, all_cuts
+    return G, lastCut, counter, all_cuts
 
 def testDoubleLinkedList():
     # TODO, just praying the foundation datastructure works properly lol...

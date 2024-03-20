@@ -30,12 +30,12 @@ def mls(G, maxFmPasses= 10000):
     while fmCounter < maxFmPasses:
         binList = createRandomPartition(G)
         graph_handler.setPartitionByBinaryList(G, binList)
-        G, partition, cut, cntFMPass, allCuts = fiduccia.fm_search(G)
+        G,  cut, cntFMPass, allCuts = fiduccia.fm_search(G)
         fmCounter += cntFMPass
         cuts.append(allCuts)
         if cut  < minCut:
             minCut = cut
-            bestPartition = partition
+            bestPartition = graph_handler.getPartition(G)
         
     graph_handler.setPartition(G, bestPartition) 
     return G, cuts, time.time() - startTime
@@ -72,7 +72,8 @@ def ils(G, startNumberOfMutations = 4, maxFmPasses = 10000, maxTime = None, part
         partition = createRandomPartition(G)
     cuts = []
     graph_handler.setPartitionByBinaryList(G, list(partition))
-    G, lastPartition, lastCut, fmCounter, allCuts = fiduccia.fm_search(G)
+    G, lastCut, fmCounter, allCuts = fiduccia.fm_search(G)
+    lastPartition = graph_handler.getPartition(G)
     cuts.append(allCuts)
     isFMCntMaxReached = False
     isMaxTimeReached = False
@@ -81,13 +82,14 @@ def ils(G, startNumberOfMutations = 4, maxFmPasses = 10000, maxTime = None, part
         partition = graph_handler.getStringBinaryRepresentation(G)
         mutatedSolution = mutatePartition(partition, numberOfMutations=startNumberOfMutations)
         graph_handler.setPartitionByBinaryList(G, list(mutatedSolution))
-        G, newPartition, newCut, cntFMPass, allCuts = fiduccia.fm_search(G)
+        G, newCut, cntFMPass, allCuts = fiduccia.fm_search(G)
         fmCounter += cntFMPass 
         cuts.append(allCuts)
         isImproved = newCut < lastCut
         if isImproved:
             lastCut = newCut
-            graph_handler.setPartition(G, newPartition)
+        else:
+            graph_handler.setPartition(G, lastPartition)
         if maxFmPasses:
             isFMCntMaxReached = fmCounter > maxFmPasses
         if maxTime:
@@ -187,7 +189,7 @@ def geneticSearch(G:nx.Graph,population:int, maxFmPass = 10000):
         #print(f"child {child} {pop[p1],pop[p2]}" )
         gh.setPartitionByBinaryList(G,child)
         #Improve the child through local search
-        G, lastPartition,  lastCut, counter, allCuts=fm.fm_search(G)
+        G,  lastCut, counter, allCuts=fm.fm_search(G)
         totalCuts.append(allCuts)
         binaryPart = gh.getListBinaryRepresentation(G)
         cntr+=counter
