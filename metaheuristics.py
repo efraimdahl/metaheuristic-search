@@ -23,6 +23,7 @@ def createRandomPartition(G):
 
 def mls(G, maxFmPasses= 10000):
     bestPartition = None
+    cuts = []
     minCut = math.inf   
     fmCounter = 0
     startTime = time.time()
@@ -31,12 +32,13 @@ def mls(G, maxFmPasses= 10000):
         graph_handler.setPartitionByBinaryList(G, binList)
         G, partition, cut, cntFMPass = fiduccia.fm_search(G)
         fmCounter += cntFMPass
+        cuts.append(cut)
         if cut  < minCut:
             minCut = cut
             bestPartition = partition
         
     graph_handler.setPartition(G, bestPartition) 
-    return G, minCut, time.time() - startTime
+    return G, cuts, time.time() - startTime
     
 
 
@@ -68,8 +70,10 @@ def ils(G, startNumberOfMutations = 4, maxFmPasses = 10000, maxTime = None, part
     isImproved = True
     if not partition:
         partition = createRandomPartition(G)
+    cuts = []
     graph_handler.setPartitionByBinaryList(G, list(partition))
     G, lastPartition, lastCut, fmCounter = fiduccia.fm_search(G)
+    cuts.append(lastCut)
     isFMCntMaxReached = False
     isMaxTimeReached = False
     startTime = time.time()
@@ -79,6 +83,7 @@ def ils(G, startNumberOfMutations = 4, maxFmPasses = 10000, maxTime = None, part
         graph_handler.setPartitionByBinaryList(G, list(mutatedSolution))
         G, newPartition, newCut, cntFMPass = fiduccia.fm_search(G)
         fmCounter += cntFMPass 
+        cuts.append(newCut)
         isImproved = newCut < lastCut
         if isImproved:
             lastCut = newCut
@@ -89,9 +94,9 @@ def ils(G, startNumberOfMutations = 4, maxFmPasses = 10000, maxTime = None, part
             isMaxTimeReached = (time.time() - startTime) >  maxTime
         
             
+        
 
-
-    return G, lastCut, fmCounter, time.time() -startTime
+    return G, cuts, fmCounter, time.time() -startTime
     
 
 def hemming_distance(p1,p2):
@@ -210,6 +215,6 @@ def geneticSearch(G:nx.Graph,population:int, maxFmPass = 10000):
                 prev_best=minCut
         if(no_improv>=MAX_NO_IMPROV):
             break
-    return(res,cntr,pop[0][0], minCut)
+    return(res,cntr,pop[0][0])
 
     #G, partion, cut = fiduccia.fm_search(G)
