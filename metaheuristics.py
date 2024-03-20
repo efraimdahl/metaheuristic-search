@@ -5,6 +5,14 @@ import random
 import math
 import numpy as np
 import time
+import graph_handler as gh
+import fiduccia as fm
+import networkx as nx
+import numpy as np
+import bisect
+MAX_COUNT = 10000
+MAX_NO_IMPROV = 20
+
 
 def createRandomPartition(G):
     binStr = graph_handler.BINARY_PARTITION_0 * int(len(G.nodes()) / 2)
@@ -85,3 +93,123 @@ def ils(G, startNumberOfMutations = 4, maxFmPasses = 10000, maxTime = None, part
 
     return G, lastCut, fmCounter, time.time() -startTime
     
+
+def hemming_distance(p1,p2):
+    return sum([0 if p1[i]==p2[i] else 1 for i in range (0,len(p1))])
+
+def invert_binary_list(p):
+    return ["0" if p[i]=="1" else "1" for i in range(0,len(p))]
+
+def uniformCrossover(p1,p2):
+    hd=hemming_distance(p1,p2)
+    if(hd>(len(p1)//2)):
+        p2 = invert_binary_list(p2)
+    balance = 0
+    child = [-1]*len(p1)
+    for i in range(0,len(p1)):
+        if(abs(balance)>=len(p1)-i):
+            ci = "0" if balance>0 else "1"
+            incr = 1 if balance<0 else -1
+            child[i]=ci
+            balance+=incr
+        elif(p1[i]==p2[i]):
+            child[i] = p1[i]
+            incr = 1 if p1[i]=="1" else -1
+            balance+=incr
+        else:
+            apnd = np.random.choice([0,1])
+            child[i]=str(apnd)
+            incr = 1 if apnd==1 else -1
+            balance+=incr
+    assert(len(child)==len(p1) and balance==0)
+    return child
+
+"""
+Places the first (non-sorted) item of the list in the correct position, shifting all other elements
+"""
+def insert(lst, item):
+    #print(lst,item)
+    # Searching for the position
+    index=0
+    for i in range(len(lst)-1,-1,-1):
+      #print(i,lst[i],item)
+      if lst[i][1] < item[1]:
+        index = i+1
+        break
+    # Inserting n in the list
+    if index == 0:
+      lst = [item]+lst
+    else:
+      lst = lst[:index] + [item] + lst[index:]
+    return lst
+
+
+"""
+The specific genetic algorithm is an incremental (or steady state) GA where there is no
+explicit notion of generations: each iteration two parents are randomly selected, use
+uniform crossover to generate one child, do FM local search on the child, let this
+optimized child compete with the worst solution in the population, if it is better or
+equal it replaces the worst solution.
+
+Additional break, after 20 generations of no improvement in best cut, or cut average, the algorithm is stopped.
+"""
+
+def geneticSearch(G:nx.Graph,population:int, maxFmPass = 10000):
+    res,cntr,no_improv,prev_best,best_avg = [],0,0,np.inf,np.inf
+    #randomly initiate vertices in different colors
+    pop=[[createRandomPartition(G),np.inf] for i in range(0,population)]
+    #calculate number of cuts for each population member
+    for mem in pop:
+        gh.setPartitionByBinaryList(G,mem[0])
+        cut=gh.getCut(G)
+        if(cut<prev_best):
+            prev_best=cut
+        mem[1]=cut
+    #print(pop)
+    #sort according to cutNumber
+    pop.sort(key=lambda x: x[1])
+    #print("Population",pop)
+    while (cntr<maxFmPass):
+        #print(len(pop),population,pop)
+        assert(len(pop)==population)
+        #randomly select two parents
+        p1=np.random.randint(0,population-1)
+        p2=p1
+        while p2==p1: #makes sure parents are distinct
+            p2=np.random.randint(0,population-1)
+        child = uniformCrossover(pop[p1][0],pop[p2][0])
+        #print(f"child {child} {pop[p1],pop[p2]}" )
+        gh.setPartitionByBinaryList(G,child)
+        #Improve the child through local search
+        G, lastPartition,  lastCut, counter=fm.fm_search(G)
+        binaryPart = gh.getListBinaryRepresentation(G)
+        cntr+=counter
+        #Compete with weakest population member
+        #print("partition",binaryPart)
+        if(lastCut<pop[-1][1]):
+            pop.pop()#constant time removal of weakest member
+            #print("Population1",pop)
+            #print("Inserting",binaryPart,lastCut)
+            pop=insert(pop,[binaryPart,lastCut]) #Linear time insert while maintining sorted status    
+            #print("Population2",pop)
+        minCut = pop[0][1]
+        values = [x[1] for x in pop]
+        # Calculate the mean
+        average = np.mean(values)
+        res.append([minCut,average])
+        if(minCut>prev_best):
+            print([item[1] for item in pop])
+        assert(not minCut>prev_best)
+        if(prev_best<=minCut and average<=best_avg):
+            no_improv+=1
+        else:
+            no_improv=0
+            if(best_avg>average):
+                best_avg=average
+            if(prev_best>minCut):
+                prev_best=minCut
+        if(no_improv>=MAX_NO_IMPROV):
+            break
+    return(res,cntr,pop[0][0], minCut)
+
+    #G, partion, cut = fiduccia.fm_search(G)
