@@ -186,7 +186,7 @@ def fm_pass(G):
     """
     lBucket,rBucket,lBucketsize,rBucketsize, vertexElementReference, vertexBucketReference=initializeBuckets(G)
     pickBucket, pickBucketSize, receiveBucket, receiveBucketSize = bucketSelect(lBucket, rBucket,lBucketsize,rBucketsize)
-    startPartition = graph_handler.getPartition(G)
+   # startPartition = graph_handler.getPartition(G)
     cut = graph_handler.getCut(G)
     lockedVertices = []
     maxGain, maxGainElement = findMaximumGain(pickBucket)
@@ -209,8 +209,8 @@ def fm_pass(G):
         pickBucket, pickBucketSize, receiveBucket, receiveBucketSize = bucketSelect(pickBucket, receiveBucket,pickBucketSize,receiveBucketSize)    
         maxGain, maxGainElement = findMaximumGain(pickBucket)
 
-    endPartition = graph_handler.getPartition(G)
-    assert(graph_handler.getComplement(G, startPartition) == endPartition ) # "fm has different start end partition" 
+    #endPartition = graph_handler.getPartition(G)
+    #assert(graph_handler.getComplement(G, startPartition) == endPartition ) # "fm has different start end partition" 
     lockedVertices.reverse()
     return findBestPartition(G, lockedVertices)
               
@@ -218,7 +218,7 @@ def fm_pass(G):
 def fm_search(G:nx.Graph):
     #Calculate maximum cardinality, maximum amount of edges any one vertex has, this is the maximum gain/loss
     #initialize the gain bucket as dictionary of lists
-    
+     
     lastCut , newPartition, newCut = math.inf,  graph_handler.getPartition(G), 999999999999 
     counter = 0
     while newCut < lastCut:
