@@ -216,9 +216,10 @@ def fm_pass(G):
               
 
 def fm_search(G:nx.Graph):
+
     #Calculate maximum cardinality, maximum amount of edges any one vertex has, this is the maximum gain/loss
     #initialize the gain bucket as dictionary of lists
-     
+    all_cuts = []
     lastCut , newPartition, newCut = math.inf,  graph_handler.getPartition(G), 999999999999 
     counter = 0
     while newCut < lastCut:
@@ -226,9 +227,10 @@ def fm_search(G:nx.Graph):
         lastCut = newCut
         graph_handler.setPartition(G, lastPartition)
         G , newPartition, newCut = fm_pass(G)
+        all_cuts.append(newCut)
         counter += 1
        
-    return G, lastPartition,  lastCut, counter
+    return G, lastPartition,  lastCut, counter, all_cuts
 
 def testDoubleLinkedList():
     # TODO, just praying the foundation datastructure works properly lol...

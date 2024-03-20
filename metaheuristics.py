@@ -30,9 +30,9 @@ def mls(G, maxFmPasses= 10000):
     while fmCounter < maxFmPasses:
         binList = createRandomPartition(G)
         graph_handler.setPartitionByBinaryList(G, binList)
-        G, partition, cut, cntFMPass = fiduccia.fm_search(G)
+        G, partition, cut, cntFMPass, allCuts = fiduccia.fm_search(G)
         fmCounter += cntFMPass
-        cuts.append(cut)
+        cuts.append(allCuts)
         if cut  < minCut:
             minCut = cut
             bestPartition = partition
@@ -72,8 +72,8 @@ def ils(G, startNumberOfMutations = 4, maxFmPasses = 10000, maxTime = None, part
         partition = createRandomPartition(G)
     cuts = []
     graph_handler.setPartitionByBinaryList(G, list(partition))
-    G, lastPartition, lastCut, fmCounter = fiduccia.fm_search(G)
-    cuts.append(lastCut)
+    G, lastPartition, lastCut, fmCounter, allCuts = fiduccia.fm_search(G)
+    cuts.append(allCuts)
     isFMCntMaxReached = False
     isMaxTimeReached = False
     startTime = time.time()
@@ -81,9 +81,9 @@ def ils(G, startNumberOfMutations = 4, maxFmPasses = 10000, maxTime = None, part
         partition = graph_handler.getStringBinaryRepresentation(G)
         mutatedSolution = mutatePartition(partition, numberOfMutations=startNumberOfMutations)
         graph_handler.setPartitionByBinaryList(G, list(mutatedSolution))
-        G, newPartition, newCut, cntFMPass = fiduccia.fm_search(G)
+        G, newPartition, newCut, cntFMPass, allCuts = fiduccia.fm_search(G)
         fmCounter += cntFMPass 
-        cuts.append(newCut)
+        cuts.append(allCuts)
         isImproved = newCut < lastCut
         if isImproved:
             lastCut = newCut
@@ -161,6 +161,7 @@ Additional break, after 20 generations of no improvement in best cut, or cut ave
 
 def geneticSearch(G:nx.Graph,population:int, maxFmPass = 10000):
     res,cntr,no_improv,prev_best,best_avg = [],0,0,np.inf,np.inf
+    totalCuts = []
     #randomly initiate vertices in different colors
     pop=[[createRandomPartition(G),np.inf] for i in range(0,population)]
     #calculate number of cuts for each population member
@@ -186,7 +187,8 @@ def geneticSearch(G:nx.Graph,population:int, maxFmPass = 10000):
         #print(f"child {child} {pop[p1],pop[p2]}" )
         gh.setPartitionByBinaryList(G,child)
         #Improve the child through local search
-        G, lastPartition,  lastCut, counter=fm.fm_search(G)
+        G, lastPartition,  lastCut, counter, allCuts=fm.fm_search(G)
+        totalCuts.append(allCuts)
         binaryPart = gh.getListBinaryRepresentation(G)
         cntr+=counter
         #Compete with weakest population member
@@ -215,6 +217,6 @@ def geneticSearch(G:nx.Graph,population:int, maxFmPass = 10000):
                 prev_best=minCut
         #if(no_improv>=MAX_NO_IMPROV):
         #    break
-    return(res,cntr,pop[0][0])
+    return(res,cntr,pop[0][0], totalCuts)
 
     #G, partion, cut = fiduccia.fm_search(G)
