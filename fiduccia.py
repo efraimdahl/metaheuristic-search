@@ -229,6 +229,7 @@ def fm_search(G:nx.Graph):
         G , newPartition, newCut = fm_pass(G)
         all_cuts.append(newCut)
         counter += 1
+    graph_handler.setPartition(G, lastPartition)
     return G, lastCut, counter, all_cuts
 
 def testDoubleLinkedList():
