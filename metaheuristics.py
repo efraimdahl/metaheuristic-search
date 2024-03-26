@@ -150,17 +150,6 @@ def insert(lst, item):
       lst = lst[:index] + [item] + lst[index:]
     return lst
 
-
-"""
-The specific genetic algorithm is an incremental (or steady state) GA where there is no
-explicit notion of generations: each iteration two parents are randomly selected, use
-uniform crossover to generate one child, do FM local search on the child, let this
-optimized child compete with the worst solution in the population, if it is better or
-equal it replaces the worst solution.
-
-Additional break, after 20 generations of no improvement in best cut, or cut average, the algorithm is stopped.
-"""
-
 def geneticSearch(G:nx.Graph,population:int, maxFmPass = 10000):
     res,cntr,no_improv,prev_best,best_avg = [],0,0,np.inf,np.inf
     totalCuts = []
@@ -222,3 +211,138 @@ def geneticSearch(G:nx.Graph,population:int, maxFmPass = 10000):
     return(res,cntr,pop[0][0], totalCuts)
 
     #G, partion, cut = fiduccia.fm_search(G)
+def linear_probabilities(items, k):
+    #print(items[-1][1],items[0][1])
+    spread = items[-1][1]-items[0][1]
+    if(spread!=0):
+        probabilities = [k ** (i[1] / (spread)) for i in items]
+    else:
+        probabilities=[i[1] for i in items]
+    probabilities.reverse()
+    #print(probabilities)
+    sm = np.sum(probabilities)
+    norm_probabilities = [x / sm for x in probabilities]
+    #print(sum(norm_probabilities))
+    return norm_probabilities
+
+"""
+The specific genetic algorithm is an incremental (or steady state) GA where there is no
+explicit notion of generations: each iteration two parents are randomly selected, use
+uniform crossover to generate one child, do FM local search on the child, let this
+optimized child compete with the worst solution in the population, if it is better or
+equal it replaces the worst solution.
+
+Additional break, after 20 generations of no improvement in best cut, or cut average, the algorithm is stopped.
+"""
+
+def pressureGeneticSearch(G:nx.Graph,population:int, maxFmPass = 10000, selection_pressure:int=1):
+    res,cntr,no_improv,prev_best,best_avg = [],0,0,np.inf,np.inf
+    totalCuts = []
+    #randomly initiate vertices in different colors
+    pop=[[createRandomPartition(G),np.inf] for i in range(0,population)]
+    #calculate number of cuts for each population member
+    for mem in pop:
+        gh.setPartitionByBinaryList(G,mem[0])
+        cut=gh.getCut(G)
+        if(cut<prev_best):
+            prev_best=cut
+        mem[1]=cut
+    #print(pop)
+    #sort according to cutNumber
+    pop.sort(key=lambda x: x[1])
+    #print("Population",pop)
+    while (cntr<maxFmPass):
+        #print(len(pop),population,pop)
+        assert(len(pop)==population)
+        weighted_prop=linear_probabilities(pop,selection_pressure)
+        p1,p2 = [weighted_prop[0],weighted_prop[0]]
+        while(p1==p2):
+            p1,p2= random.choices(range(0,len(pop)),weights=weighted_prop,k=2)
+        child = uniformCrossover(pop[p1][0],pop[p2][0])
+        #print(f"child {child} {pop[p1],pop[p2]}" )
+        gh.setPartitionByBinaryList(G,child)
+        #Improve the child through local search
+        G,  lastCut, counter, allCuts=fm.fm_search(G)
+        totalCuts.append(allCuts)
+        binaryPart = gh.getListBinaryRepresentation(G)
+        cntr+=counter
+        #Compete with weakest population member
+        #print("partition",binaryPart)
+        if(lastCut<pop[-1][1]):
+            pop.pop()#constant time removal of weakest member
+            #print("Population1",pop)
+            #print("Inserting",binaryPart,lastCut)
+            pop=insert(pop,[binaryPart,lastCut]) #Linear time insert while maintining sorted status    
+            #print("Population2",pop)
+        minCut = pop[0][1]
+        values = [x[1] for x in pop]
+        # Calculate the mean
+        average = np.mean(values)
+        res.append([minCut,average])
+        #if(minCut>prev_best):
+            #print([item[1] for item in pop])
+        assert(not minCut>prev_best)
+        if(prev_best<=minCut and average<=best_avg):
+            no_improv+=1
+        else:
+            no_improv=0
+            if(best_avg>average):
+                best_avg=average
+            if(prev_best>minCut):
+                prev_best=minCut
+        #if(no_improv>=MAX_NO_IMPROV):
+        #    break
+    return(res,cntr,pop[0][0], totalCuts)
+
+    #G, partion, cut = fiduccia.fm_search(G)
+
+def ilsGeneticSearch(G:nx.Graph,population:int, maxFmPass = 10000, selectionPressure=1,startNumberOfMutations=4):
+    res,cntr,no_improv,prev_best,best_avg = [],0,0,np.inf,np.inf
+    totalCuts = []
+    #randomly initiate vertices in different colors
+    pop=[[createRandomPartition(G),np.inf] for i in range(0,population)]
+    #calculate number of cuts for each population member
+    for mem in pop:
+        gh.setPartitionByBinaryList(G,mem[0])
+        cut=gh.getCut(G)
+        if(cut<prev_best):
+            prev_best=cut
+        mem[1]=cut
+    #print(pop)
+    #sort according to cutNumber
+    pop.sort(key=lambda x: x[1])
+    #print("Population",pop)
+    while (cntr<maxFmPass):
+        #print(len(pop),population,pop)
+        assert(len(pop)==population)
+        #randomly select two parents
+        p1=np.random.randint(0,population-1)
+        p2=p1
+        while p2==p1: #makes sure parents are distinct
+            p2=np.random.randint(0,population-1)
+        child = uniformCrossover(pop[p1][0],pop[p2][0])
+        for i in range(0,selectionPressure):
+            mutatedSolution=mutatePartition(child, numberOfMutations=startNumberOfMutations)
+            gh.setPartitionByBinaryList(G, list(mutatedSolution))
+            G, lastCut, cntFMPass, allCuts = fm.fm_search(G)
+            cntr+=cntFMPass
+            if(lastCut<pop[-1][1]):
+                pop.pop()#constant time removal of weakest member
+                pop=insert(pop,[mutatedSolution,lastCut]) #Linear time insert while maintining sorted status    
+        minCut = pop[0][1]
+        values = [x[1] for x in pop]
+        # Calculate the mean
+        average = np.mean(values)
+        res.append([minCut,average,cntr])
+        assert(not minCut>prev_best)
+        if(prev_best<=minCut and average<=best_avg):
+            no_improv+=1
+        else:
+            no_improv=0
+            if(best_avg>average):
+                best_avg=average
+            if(prev_best>minCut):
+                prev_best=minCut
+        #if(no_improv>=MAX_NO_IMPROV):
+        #    break
+    return(res,cntr,pop[0][0], totalCuts)
