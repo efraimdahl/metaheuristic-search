@@ -65,7 +65,7 @@ def mutatePartition(binStr, numberOfMutations = 1):
 
     return "".join(str(s) for s in res)
 
-def ils(G, startNumberOfMutations = 4, maxFmPasses = 10000, maxTime = None, partition = None):
+def ils(G, startNumberOfMutations = 4, maxFmPasses = 10000, maxTime = None, partition = None, maxNoImprovement = None):
     
     isImproved = True
     if not partition:
@@ -78,7 +78,10 @@ def ils(G, startNumberOfMutations = 4, maxFmPasses = 10000, maxTime = None, part
     isFMCntMaxReached = False
     isMaxTimeReached = False
     startTime = time.time()
-    while not isFMCntMaxReached and not isMaxTimeReached:
+    totalCntNotImproved = 0
+    cntNotImproved = 0
+    isMaxNoImprovementReached = False
+    while not isFMCntMaxReached and not isMaxTimeReached and not isMaxNoImprovementReached:
         partition = graph_handler.getStringBinaryRepresentation(G)
         mutatedSolution = mutatePartition(partition, numberOfMutations=startNumberOfMutations)
         graph_handler.setPartitionByBinaryList(G, list(mutatedSolution))
@@ -88,17 +91,23 @@ def ils(G, startNumberOfMutations = 4, maxFmPasses = 10000, maxTime = None, part
         isImproved = newCut < lastCut
         if isImproved:
             lastCut = newCut
+            cntNotImproved = 0
+            lastPartition = graph_handler.getPartition(G)
         else:
             graph_handler.setPartition(G, lastPartition)
+            totalCntNotImproved =+ 1
+            cntNotImproved += 1
         if maxFmPasses:
             isFMCntMaxReached = fmCounter > maxFmPasses
         if maxTime:
             isMaxTimeReached = (time.time() - startTime) >  maxTime
+        if maxNoImprovement:
+            isMaxNoImprovementReached = cntNotImproved > maxNoImprovement
         
             
         
 
-    return G, cuts, fmCounter, time.time() -startTime
+    return G, cuts, fmCounter, time.time() -startTime, totalCntNotImproved
     
 
 def hemming_distance(p1,p2):
@@ -161,9 +170,10 @@ equal it replaces the worst solution.
 Additional break, after 20 generations of no improvement in best cut, or cut average, the algorithm is stopped.
 """
 
-def geneticSearch(G:nx.Graph,population:int, maxFmPass = 10000):
+def geneticSearch(G:nx.Graph,population:int, maxFmPass = 10000, maxTime = None):
     res,cntr,no_improv,prev_best,best_avg = [],0,0,np.inf,np.inf
     totalCuts = []
+    
     #randomly initiate vertices in different colors
     pop=[[createRandomPartition(G),np.inf] for i in range(0,population)]
     #calculate number of cuts for each population member
@@ -177,6 +187,7 @@ def geneticSearch(G:nx.Graph,population:int, maxFmPass = 10000):
     #sort according to cutNumber
     pop.sort(key=lambda x: x[1])
     #print("Population",pop)
+    startTime = time.time()
     while (cntr<maxFmPass):
         #print(len(pop),population,pop)
         assert(len(pop)==population)
@@ -217,8 +228,11 @@ def geneticSearch(G:nx.Graph,population:int, maxFmPass = 10000):
                 best_avg=average
             if(prev_best>minCut):
                 prev_best=minCut
+        if maxTime:
+            if time.time() - startTime > maxTime:
+                break
         #if(no_improv>=MAX_NO_IMPROV):
         #    break
-    return(res,cntr,pop[0][0], totalCuts)
+    return(res,cntr,pop[0][0], totalCuts, time.time() - startTime)
 
     #G, partion, cut = fiduccia.fm_search(G)
