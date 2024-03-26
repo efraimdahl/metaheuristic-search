@@ -304,12 +304,9 @@ def pressureGeneticSearch(G:nx.Graph,population:int, maxFmPass = 10000, selectio
                 best_avg=average
             if(prev_best>minCut):
                 prev_best=minCut
-        if maxTime:
-            if time.time() - startTime > maxTime:
-                break
+
         #if(no_improv>=MAX_NO_IMPROV):
         #    break
-    return(res,cntr,pop[0][0], totalCuts, time.time() - startTime)
+    return(res,cntr,pop[0][0], totalCuts)
 
     #G, partion, cut = fiduccia.fm_search(G)
-z
