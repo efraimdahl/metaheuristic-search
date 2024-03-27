@@ -95,7 +95,7 @@ def ils(G, startNumberOfMutations = 4, maxFmPasses = 10000, maxTime = None, part
             lastPartition = graph_handler.getPartition(G)
         else:
             graph_handler.setPartition(G, lastPartition)
-            totalCntNotImproved =+ 1
+            totalCntNotImproved += 1
             cntNotImproved += 1
         if maxFmPasses:
             isFMCntMaxReached = fmCounter > maxFmPasses
